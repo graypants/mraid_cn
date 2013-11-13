@@ -10,25 +10,25 @@
 #	贡献者
 IAB MRAID的工作小组包括来自以下公司的代表：
 <pre>
-24/7 Real Media, Inc. 			Medialets
-AccuWeather.com 				MediaMind
-AdMarvel						Microsoft Advertising
-AdMeld							Mixpo
-ADTECH							Mocean Mobile
-Adobe Systems Inc. 				NBC Universal Digital Media
-AOL								New York Times Co.
-CBS Interactive					Nexage
-Celtra							Pandora
-Crisp Media						PointRoll
-Dow Jones & Company				Rhythm NewMedia
-ESPN							Spongecell
-FreeWheel						Sprout
-Goldspot Media					TargetSpot
-Google							Time Inc.
-Greystripe						Turner Broadcasting System, Inc.
-IDG								Univision
-inMobi							The Weather Channel
-Innovid							Yahoo!, Inc.
+24/7 Real Media, Inc. 					Medialets
+AccuWeather.com 						MediaMind
+AdMarvel								Microsoft Advertising
+AdMeld									Mixpo
+ADTECH									Mocean Mobile
+Adobe Systems Inc. 						NBC Universal Digital Media
+AOL										New York Times Co.
+CBS Interactive							Nexage
+Celtra									Pandora
+Crisp Media								PointRoll
+Dow Jones & Company						Rhythm NewMedia
+ESPN									Spongecell
+FreeWheel								Sprout
+Goldspot Media							TargetSpot
+Google									Time Inc.
+Greystripe								Turner Broadcasting System, Inc.
+IDG										Univision
+inMobi									The Weather Channel
+Innovid									Yahoo!, Inc.
 Jumptap
 </pre>
 #	感谢

@@ -45,7 +45,7 @@ Neal Karasic, Jumptap					Xavier Facon, Crisp Media
 #	About MRAID
 The Interactive Advertising Bureau (“IAB”), its members and other significant contributors joined together to create this document, a standard interface specification for mobile rich media ads. The goal of the Mobile Rich-media Ad Interface Definition (MRAID) project is to address known interoperability issues between publisher mobile applications, different ad servers and different rich media platforms.
 
-###	IAB Contact Information
+##	IAB Contact Information
 
 Joe Laszlo, Senior Director, IAB Mobile Marketing Center of Excellence, mobile@iab.net
 
@@ -144,3 +144,64 @@ When newer web standards can provide consistency, ad designers are encouraged to
 
 ##	_Ad Server Requirements_
 The ad server used to traffic rich media ads should support HTML ads with JavaScript.
+
+##	_Requirements for Ad Rendering_
+###	Display of HTML Ads – Ad View Container
+An MRAID-compatible container must display any HTML ad. The container should invoke an HTML with JavaScript rendering engine for rendering ads. In this document, that engine will be called the "web view". Whenever possible, the web view should incorporate the capabilities of the device web browser. For example, iOS developers may use UIWebView. A given App view can have one or more ad view containers that will all act independently of one another.
+
+##	_Requirements for Ad Designers_
+###	Display Control for Rich Media Ads – Ad Controller
+An ad designer that expects his/her ad to make use of MRAID must indicate that by invoking the mraid.js script as soon as possible as the ad loads. This signals the SDK to inject the MRAID javascript into the creative.
+
+MRAID remains in the background, leaving the ad designer in control of the ad display, but is available so that the creative can use the MRAID API when/if the ad needs to access MRAID features and functionalities. The internal interaction between the creative and the rich media SDK is hidden from both the Ad designer and the App developer.
+
+An ad that does not utilize any device features does not need to use the MRAID API at all. However if the ad does not invoke MRAID, it will get the SDK’s default solution. Some of the things an ad uses MRAID’s API for are:
+
+* Opening an embedded web browser
+* Detecting whether the ad is viewable or not
+* Expanding an ad that grows from a banner to a larger size
+* Clicking within an ad triggering an action
+
+Ad designers are encouraged to rely on MRAID’s capabilities to achieve the above effects.
+
+##	_Lifecycle Examples_
+###	Simple Ad Lifecycle Example
+Non-rich-media ads (e.g., basic banners) can optionally invoke MRAID. If the ad does not invoke MRAID via the mraid.js script tag, then it will behave however the application/SDK normally handles such ads.
+
+Ad designers may wish for such simple HTML ads to invoke mraid.js, if they want to use the MRAID-standard container rather than the SDK’s default container. In that case, the ad designer should make sure to use mraid.open() for any links to ensure consistent behavior.
+
+###	Lifecycle of an MRAID Expandable Ad Example
+In a rich media ad lifecycle example, the Ad Designer uses the JavaScript API to communicate with the native layer and interact with features of the device and OS.
+![Lifecycle](./images/b.jpg)
+As an example, when the user touches the ad, the ad uses the MRAID API to request that the ad can expand. The SDK should (though this is not part of the MRAID specification) notify the app that the ad is expanding so that it can stop anything that the user will not be able to interact with. The SDK then resizes the web view to take up the entire screen of the device or the full size of the expanded ad. The container reserves a space at the top right corner of the expanded ad container for an MRAID-enforced close event region, and will either supply the close indicator or, if the ad specifies, will allow the ad to supply the indicator in creative.
+
+When the user is done with the expanded ad, they click a close button that causes the ad to resize to its original size, display the ad’s banner state, and notify the app that it can resume.
+
+###	Lifecycle of an MRAID Interstitial Ad
+The case of an interstitial ad is very similar. The ad can use the MRAID API to query the container as to whether it is visible onscreen or not, waiting until it is on before it takes other actions. As with an expandable, the container reserves a space at the top right corner of the expanded ad for an MRAID-enforced close event region, and will either supply the close indicator or, if the ad specifies, will allow the ad to supply the indicator in creative. When the user is done with the interstitial, they can tap the close button, which in this case changes the ad’s state to “hidden,” unregisters any event listeners, and notifies the app to resume.
+
+##	_MRAID Versions_
+The adoption of MRAID throughout the ad community is a high priority and essential for the success of mobile rich media advertising across platforms. For this reason, IAB is releasing the full feature set of MRAID in versions. This will allow SDK vendors to meet the compliance standards of the MRAID API in a consistent way and prevent possible fragmentation inherit in implementing only a portion of the standard.
+
+Maintaining full backwards compatibility in MRAID is a key goal of this project. An MRAID 2.0-compliant SDK should be able to run an MRAID 1.0 ad with no problems whatsoever, and an MRAID 1.0-compliant SDK should be able to handle the MRAID 1.0-compliant features of an MRAID 2.0 ad.
+
+In establishing both versions of MRAID, the IAB and its MRAID working group have focused on six key goals:
+
+* __High interoperability__ – ads developed to run in one MRAID container can run on MRAID containers of multiple platforms and operating systems.
+* __Graceful degradation__ – ads developed to take advantage of all the MRAID features also have the capacity to downgrade gracefully as needed. This will be especially important as gaining access to device functionalities becomes part of MRAID’s scope in the future.
+* __Progressive complexity__ – ad design using the API should be simple, adding complexity only as necessary.
+* __Consistent means for ads to change size and/or open new pages, preferably in an embedded browser__ –MRAID provides ads a consistent way to communicate with rich media SDKs regarding their need to expand, and open an app’s embedded browser (or in the native browser if an embedded browser does not exist).
+* __Consistent means for a consumer to exit an ad__ – MRAID ads will always have a consistent control by which a user can indicate that they wish to exit out of the ad experience and return to the app/content they were in.
+* __Flexibility for publishers__ – although MRAID-compliant SDKs must support all MRAID capabilities, app publishers/ad sellers are free to allow or disallow ads that make use of the features MRAID enables. That is, MRAID enables rich media ad features, but does not dictate that all sellers of rich media ads must support all those features.
+
+###	Version 1
+The methods and events included in MRAID Version 1 provide a minimum level of requirements for rich media ads, primarily to display HTML ads that can change size in a fixed container (e.g., expand from banner to larger/full screen size), and interstitial ads.
+
+###	Version 2
+MRAID Version 2 extends the capabilities of MRAID Version 1 to give ad designers more control over expandable ads, and provides a new method, resize() that permits more subtle and interesting size changes in ad creatives as well.
+
+In addition, MRAID v.2 provides a standard way to query a device regarding certain capabilities, offers consistent handling of video creative, and addresses two native capabilities not well implemented by HTML5 at present: adding an entry to the device calendar and storing an image in the device photo roll.
+
+For examples of ads that can be developed using the MRAID Version 2 API, please see the addendum.
+
+#	Interface Requirements and Definitions

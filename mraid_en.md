@@ -205,3 +205,103 @@ In addition, MRAID v.2 provides a standard way to query a device regarding certa
 For examples of ads that can be developed using the MRAID Version 2 API, please see the addendum.
 
 #	Interface Requirements and Definitions
+This list outlines all the methods and events that ad designers will have access to under MRAID v2.0. Methods and events new in MRAID v2.0 (e.g., that were not in MRAID v1) are indicated by an asterisk below.
+
+**Methods**
+<pre>
+	addEventListener					getVersion
+	createCalendarEvent*				isViewable
+	close 								open
+	expand 								playVideo*
+	getCurrentPosition*					removeEventListener
+	getDefaultPosition*					resize
+	getExpandProperties					setExpandProperties
+	getMaxSize*							setResizeProperties*
+	getPlacementType					storePicture*
+	getResizeProperties*				supports*
+	getScreenSize*						useCustomClose
+	getState
+</pre>
+
+**Events**
+<pre>
+	error 								stateChange
+	ready 								viewableChange
+	sizeChange*
+</pre>
+
+##	_Identification_
+It is required that ads identify themselves as being MRAID compliant. This is done by adding an MRAID script reference as soon as possible the creative and well before any MRAID functions are referenced in the creative. In other words, the MRAID identification script reference must be identifiable as soon as possible by any MRAID-compliant container or SDK.
+
+**MRAID** script reference
+
+The MRAID tag follows HTML Javascript syntax so that both fully formed web pages and HTML fragments can be identified as MRAID ads. mraid.js will be included as a script in the document either using an HTML tag or as javascript. MRAID sample ads (see www.iab.net/mraid) illustrate where the script tag should be positioned.
+
+`<script src="mraid.js"></script>`
+
+While MRAID ads need to identify themselves as such via the mraid.js script in a timely fashion so that the container can inject the MRAID libraries, ad designers should avoid using the string “mraid.js” for any other purpose in an ad creative, as doing so may lead containers/SDKs to mistakenly inject multiple copies of the MRAID libraries.
+
+##	_Initialization_
+MRAID governs interactions between the ad and the container and identifies the container as compatible with these specifications. Ad designers must include the JavaScript identification reference for MRAID, but the actual JavaScript libraries are supplied by the container, and it is the responsibility of the container to ensure they are available to the ad in a timely fashion after the script reference is made, and to signal as such by firing the ready event.
+
+The following summarizes step-by-step the actions that the ad and MRAID container take in the initial loading of the ad and the injection of MRAID API libraries.
+
+1. Ad identifies itself as MRAID as early as possible by invoking MRAID script tag.`<script src="mraid.js"></script>`
+2. SDK/MRAID-compatible Container
+   a. Optionally detects the script call
+   b. Always provides the MRAID JavaScript bridge for MRAID ads
+   c. Provides limited MRAID object with an MRAID State = “loading” and the ability to query the state
+3. If the ad uses createElement, needs to wait for mraid.js to finish loading
+4. If MRAID State=”loading” then ad listens for “ready” event with mraid.addEventListener('ready')
+5. SDK/Container finishes initializing MRAID library into the webview
+   a. Changes the MRAID state to “default” and the StateChange Event is triggered
+   b. Fires the MRAID “ready” event
+6. Ad's "ready" event listener is triggered and ad JavaScriptcan now use the MRAID APIs
+
+**ready** event
+
+The ready event triggers when the container is fully loaded, initialized, and ready for any calls from the ad creative.
+
+It is the responsibility of the MRAID-compliant container to prepare the API methods before the ad creative is loaded. This prevents a condition where the ad cannot register to listen for the ready event because the API methods are unavailable. While the container may load all of MRAID at once, at a minimum the container must be prepared to support the getState and addEventListener capabilities as early as possible in the ad loading process; otherwise there will be no way for the ad to register for the ready event. In the event that the container may still need more time to initialize settings or prepare additional features, ready should only fire when the container is completely prepared for any MRAID request.
+
+The ad should always attempt to wait for the ready event before executing any rich media operations. Because of timing issues, such as the ready event firing before the ad has registered to listen, ad designers should use the ready event in conjunction with the getState() method.
+
+Example
+
+```
+function showMyAd() {
+    ...
+}
+if (mraid.getState() === 'loading') {
+    mraid.addEventListener('ready', showMyAd);
+} else {
+    showMyAd();
+}
+```
+
+“ready”
+<pre>
+parameters:
+· none
+side effects:
+· MRAID JavaScript library available to ad unit 
+return values:
+· none
+event triggered:
+· none
+</pre>
+
+**getVersion** method
+
+The getVersion method allows the ad to confirm a basic feature set before display. This version number must correspond with the MRAID version specification (e.g., 1.0 or 2.0) and not the vendor’s SDK version.
+
+getVersion() -> String
+<pre>
+parameters:
+· none
+return values:
+· String – the MRAID version that this SDK is certified against by the IAB, or that this SDK is compliant with. For example, for the current version of MRAID, getVersion() will return “2.0.”
+</pre>
+
+##	_Initial Display_
+It is up to the ad designer to provide simple HTML, such as an `<img>` tag, for the initial display of their ad while other assets are loaded in the background. This HTML will be displayed in the Container while JavaScript uses the Controller to request and invoke additional capabilities. Ultimately, the initial HTML display may be completely replaced by a rich media ad once all assets are ready, depending on the creative requirements.

@@ -235,13 +235,82 @@ MRAID2.0继承了MRAID1.0的特性，不但在展开式广告之上，给广告�
 
 **MRAID**脚本引用
 
-MRAID标签遵循HTML JavaScript语法，以便完整的网页和HTML片段都可以被标识为MRAID广告。`mraid.js`作为一个脚本将被引入到文档中，或者使用HTML标签，或者使用JavaScript代码。MRAID示例广告（见[www.iab.net/mraid](http://www.iab.net/mraid)）说明了脚本引用标签应该放在哪儿。
+MRAID标签遵循HTML JavaScript语法，以便完整的网页和HTML片段都可以被标识为MRAID广告。mraid.js作为一个脚本将被引入到文档中，或者使用HTML标签，或者使用JavaScript代码。MRAID示例广告（见[www.iab.net/mraid](http://www.iab.net/mraid)）说明了脚本引用标签应该放在哪儿。
 
 `<script src="mraid.js"></script>`
 
-虽然MRAID广告需要尽早的标识它们自己（例如像这样通过mraid.js脚本）以便于容器可以注入MRAID类库，但是当广告创意中为了其它目的时，广告设计者也应避免使用`mraid.js`字符串，因为这样做可能会导致容器或者SDK错误的注入多个MRAID类库副本。
+虽然MRAID广告需要尽早的标识它们自己（例如像这样通过mraid.js脚本）以便于容器可以注入MRAID类库，但是当广告创意中为了其它目的时，广告设计者也应避免使用mraid.js字符串，因为这样做可能会导致容器或者SDK错误的注入多个MRAID类库副本。
 
 ##	初始化
+MRAID管理广告和容器之间的交互，并且标识容器是兼容MRAID规范的。广告设计者必须为MRAID包含JavaScript引用，但是实际的JavaScript类库由容器提供；容器的职责是在脚本引入后，确保它们对广告尽早的可用，完成这些则通过触发ready事件来告知可用。
+
+下面分步骤总结了从广告初始化加载到MRAID容器注入API类库的行为。
+
+1. 调用MRAID脚本标签`<script src="mraid.js"></script>`，标识为MRAID广告。
+2. SDK/MRAID兼容的容器
+
+	a. 可选的检测脚本调用
+
+	b. 总是为MRAID广告提供MRAID JavaScript桥接
+
+	c. 提供一个state = 'loading'和具有查询状态功能的受限对象
+
+3. 如果广告使用createElement，需要等mraid.js完成加载
+4. 如果state = 'loading'，那么广告使用`mraid.addEventListener('ready')`监听ready事件
+5. SDK/容器完成向webview中初始化MRAID类库
+	
+	a. 变更state为default，同时StateChange事件被触发
+
+	b. 触发MRAIDready事件
+
+6. 广告的ready事件监听被触发，此时广告JavaScript代码可以使用所有MRAID API
+
+**ready**事件
+
+ready事件在容器完全加载时触发，完成初始化并且准备好来自广告创意的任意调用。
+
+在加载广告创意之前，MRAID容器负责预备API方法。这会阻止一种情况：因为API方法不可用导致的广告不能为ready事件注册监听。虽然容器可以一次性加载所有的MRAID API，但在广告加载过程中，容器最少要准备好getState和addEventListener；否则将没有办法为广告注册ready事件。在事件中，容器可能仍然需要较多的时间初始化设置或者准备附加功能，只有当它完全准备好接受MRAID请求时，ready才应被触发。
+
+在执行任何富媒体操作之前，广告应该总是试图等待ready事件。由于时间问题，比如要在广告注册监听之前触发ready事件，广告设计者可以配合getState()方法来使用ready事件。
+
+例子
+
+```
+function showMyAd() {
+    ...
+}
+if (mraid.getState() === 'loading') {
+    mraid.addEventListener('ready', showMyAd);
+} else {
+    showMyAd();
+}
+```
+
+“ready”
+<pre>
+参数：
+· none
+侧面影响：
+· 使MRAID JavaScript类库对广告模块可用
+返回值：
+· none
+触发事件：
+· none
+</pre>
+
+**getVersion**方法
+
+getVersion方法允许广告在显示前确认基础功能集。版本号必须符合MRAID规范（例如1.0或者2.0），不是供应商的SDK版本号。
+
+getVersion() -> String
+<pre>
+参数：
+· none
+返回值
+· String – MRAID兼容的SDK版本号或者IAB针对性认证的SDK版本号。举个例子，对于本文的版本号，getVersion()讲返回“2.0”
+</pre>
+
+##	初始显示
 
 
 

@@ -248,15 +248,22 @@ The following summarizes step-by-step the actions that the ad and MRAID containe
 
 1. Ad identifies itself as MRAID as early as possible by invoking MRAID script tag.`<script src="mraid.js"></script>`
 2. SDK/MRAID-compatible Container
-   a. Optionally detects the script call
-   b. Always provides the MRAID JavaScript bridge for MRAID ads
-   c. Provides limited MRAID object with an MRAID State = “loading” and the ability to query the state
+
+	a. Optionally detects the script call
+
+	b. Always provides the MRAID JavaScript bridge for MRAID ads
+
+	c. Provides limited MRAID object with an MRAID State = “loading” and the ability to query the state
+
 3. If the ad uses createElement, needs to wait for mraid.js to finish loading
 4. If MRAID State=”loading” then ad listens for “ready” event with mraid.addEventListener('ready')
 5. SDK/Container finishes initializing MRAID library into the webview
-   a. Changes the MRAID state to “default” and the StateChange Event is triggered
-   b. Fires the MRAID “ready” event
-6. Ad's "ready" event listener is triggered and ad JavaScriptcan now use the MRAID APIs
+
+	a. Changes the MRAID state to “default” and the StateChange Event is triggered
+
+	b. Fires the MRAID “ready” event
+
+6. Ad's "ready" event listener is triggered and ad JavaScript can now use the MRAID APIs
 
 **ready** event
 
@@ -305,3 +312,99 @@ return values:
 
 ##	_Initial Display_
 It is up to the ad designer to provide simple HTML, such as an `<img>` tag, for the initial display of their ad while other assets are loaded in the background. This HTML will be displayed in the Container while JavaScript uses the Controller to request and invoke additional capabilities. Ultimately, the initial HTML display may be completely replaced by a rich media ad once all assets are ready, depending on the creative requirements.
+
+##	_Event Handling_
+Event handling is a key concept of MRAID. Communicating between the web layer and native layer is asynchronous by nature. Through event handling, the ad designer is able to listen for particular events and respond to those events on an as-needed basis. MRAID advocates broadcast-style events to support the broadest range of features/flexibility with the greatest consistency.
+
+The controller exposes these methods.
+
+**addEventListener** method
+
+Use this method to subscribe a specific handler method to a specific event. In this way, multiple listeners can subscribe to a specific event, and a single listener can handle multiple events. An ad may register for more than one listener at a time, and it is required that ads be permitted to do so. The events supported by MRAID v.2 are:
+
+<table border="1" cellpadding="3">
+	<tr>
+		<th>value</th>
+		<th>description</th>
+	</tr>
+	<tr>
+		<td>ready</td>
+		<td>report initialize complete</td>
+	</tr>
+	<tr>
+		<td>error</td>
+		<td>report error has occurred</td>
+	</tr>
+	<tr>
+		<td>stateChange</td>
+		<td>report state changes</td>
+	</tr>
+	<tr>
+		<td>viewableChange</td>
+		<td>report viewable changes</td>
+	</tr>
+	<tr>
+		<td>sizeChange</td>
+		<td>report a change in size of the ad</td>
+	</tr>
+</table>
+
+addEventListener(event, listener)
+<pre>
+parameters:
+· event – string, name of event to listen for
+· listener – function to execute
+return values:
+· none
+side effects:
+· none
+</pre>
+
+**removeEventListener** method
+
+Use this method to unsubscribe a specific handler method from a specific event. Event listeners should always be removed when they are no longer useful to avoid errors. If no listener function is specified, then all functions listening to the event will be removed.
+
+removeEventListener(event, listener)
+<pre>
+parameters:
+· event – string, name of event
+· listener – function to be removed
+return values:
+· none
+events triggered:
+· none
+</pre>
+
+##	_Error Handling_
+When an error in the container occurs, the "error" event is triggered with diagnostic information about the event. Any number of listeners can monitor for errors of different types and respond as needed.
+
+**error** event
+
+This event is triggered whenever a container error occurs. The event contains a description of the error that occurred and, when appropriate, the name of the action that resulted in the error (in the absence of an associated action, the action parameter is null). JavaScript errors remain the full responsibility of the ad designer.
+
+“error” -> function(message, action)
+<pre>
+parameters:
+· message: String, description of the type of error
+· action: String, name of action that caused error
+triggered by:
+· anything that goes wrong
+</pre>
+Ad designers should note that errors can be handled on either a synchronous or an asynchronous basis by the SDK/container.
+
+While the “message” part of the error event is not defined by the MRAID specification and mainly intended for pre-flight debugging of creative, the “action” part of the error is always the name of the method that the ad tried to use that led to the error. In principle, any MRAID method may trigger an error, so ad designers using an error event listener should listen for the following as potential error actions:
+<pre>
+	addEventListener					getVersion
+	createCalendarEvent 				isViewable
+	close 								open
+	expand 								playVideo 
+	getCurrentPosition 					removeEventListener
+	getDefaultPosition 					resize
+	getExpandProperties					setExpandProperties
+	getMaxSize 							setResizeProperties 
+	getPlacementType					storePicture 
+	getResizeProperties 				supports 
+	getScreenSize 						useCustomClose
+	getState
+</pre>
+While any MRAID method may lead to an error, in practice using resize, adding an image to a device’s photo album or adding an event to a calendar are the most likely MRAID methods to generate errors. Ad designers using those methods should be particularly diligent about adding an error listener to check whether an error occurs on a resize, storePhoto, or createCalendarEvent action, so that the ad creative can potentially take a different action.

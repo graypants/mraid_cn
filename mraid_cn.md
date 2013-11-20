@@ -101,7 +101,7 @@ DIP是对物理屏幕像素的一个抽象，旨在简化应用和内容开发�
 * 渐进式的复杂度（简单的事情很简单，复杂的事情都是可能的，但更难）
 
 ##	技术受众
-规范文档天生是技术性的，但这并不妨碍我们创新。这份文档主要是针对出版商或SDK供应商，并解决广告设计者的需求。
+规范文档按性质来说是技术性的，但这并不妨碍我们创新。这份文档主要是针对出版商或SDK供应商，并解决广告设计者的需求。
 >###	本地应用开发者
 在这份规范中对于本地应用开发者没有任何要求。他们应该遵循他们的SDK开发者提供的用于集成广告到他们应用程序的说明。
 >###	SDK开发者
@@ -194,10 +194,10 @@ MRAID保持在后台运行，把控制广告显示的权利留给广告设计者
 * __消费者一致的方法退出广告__ —— MRAID广告总是有相同的退出控制，通过它，用户可以表明他们想退出广告，并返回到他们的应用程序或内容中。
 * __出版商的灵活性__ —— 虽然符合MRAID规范的SDK必须支持所有的MRAID特性，但是App发布者、广告卖家可以灵活的允许或禁止使用MRAID特性的广告。也就是说，MRAID允许富媒体广告功能，但并不规定所有卖家的富媒体广告必须支持所有这些功能。
 
-###	版本1
+###	1.0版本
 MRAID1.0中的方法和事件，为富媒体广告提供了一个最低级别的需求，主要用于显示一个在固定容器中可改变大小的HTML广告（例如，把一个广告从banner扩展到更大尺寸或全屏）和插播式广告。
 
-###	版本2
+###	2.0版本
 MRAID2.0继承了MRAID1.0的特性，不但在展开式广告之上，给广告设计者们更多的控制权，并且提供了一个新的方法`resize()`，使广告创意中更微妙更有趣的尺寸改变成为可能。
 
 另外，MRAID2.0规定了关于查询设备某些功能的标准方式，提出处理视频创意的统一处理方法，并且解决了目前HTML5没有很好实现的两个本地特性：给设备日历添加一个条目和向设备相册存储图片。
@@ -311,11 +311,103 @@ getVersion() -> String
 </pre>
 
 ##	初始显示
+当其它资源在后台加载时，广告设计者最好提供一段简单的HTML，比如一个`<img>`标签，用于他们广告的初始化显示。在JavaScript使用控制器请求调用额外功能时，这段HTML将显示在容器中。最终，一旦所有的资源准备完成，初始显示用的HTML可能就会完全被富媒体广告替代，这些视创意的需求而定。
 
+##	事件处理
+事件处理是MRAID的关键概念。web层和原生层的通信本质上异步的。通过事件处理，广告设计者能够监听特定的事件，并且根据需要对这些事件作出回应。MRAID主张广播式事件，在保持最强统一性的同时，支持最广泛的功能性/灵活性。
 
+控制器开放这些方法。
 
+**addEventListener**方法
 
+使用本方法为特定事件订阅一个指定的处理方法。如此以来，多个监听器可以订阅一个特定事件，一个监听器可以处理多个事件。在同一时间，一个广告可能注册不止一个监听器，前提是广告必须允许这样做。MRAID2.0支持的事件：
 
+<table border="1" cellpadding="3">
+	<tr>
+		<th>事件</th>
+		<th>描述</th>
+	</tr>
+	<tr>
+		<td>ready</td>
+		<td>报告初始化完成</td>
+	</tr>
+	<tr>
+		<td>error</td>
+		<td>报告发生错误</td>
+	</tr>
+	<tr>
+		<td>stateChange</td>
+		<td>报告状态变化</td>
+	</tr>
+	<tr>
+		<td>viewableChange</td>
+		<td>报告显示状态变化</td>
+	</tr>
+	<tr>
+		<td>sizeChange</td>
+		<td>报告广告的尺寸信息变化</td>
+	</tr>
+</table>
+
+addEventListener(event, listener)
+<pre>
+参数：
+· event – 字符串，要监听的事件名称
+· listener – 执行监听的函数
+返回值：
+· none
+侧面影响
+· none
+</pre>
+
+**removeEventListener**方法
+
+使用本方法从一个特定的事件退订指定的处理方法。当事件监听器不再有用时，它们应该总是被移除，以避免出错。如果没有监听功能被指定，那么正在监听事件的所有函数将被移除。
+
+removeEventListener(event, listener)
+<pre>
+参数：
+· event – 字符串，事件名称
+· listener – 要被移除的函数
+返回值：
+· none
+触发事件：
+· none
+</pre>
+
+##	错误处理
+当容器中发生错误，带有关于事件错误诊断信息的“error”事件会被触发。任意数量的监听器可以用来监控不同类型的错误，以根据需要进行响应。
+
+**error**事件
+
+每当容器错误发生时，该事件就被触发。该事件包含错误发生时的描述，以及，在适当的时候，包含导致错误的操作名称（没有关联动作时，动作参数为null）。JavaScript错误仍然是广告设计师的全部责任。
+
+“error” -> function(message, action)
+<pre>
+参数：
+· message: 字符串，错误描述
+· action: 字符串，引发错误的动作
+通过...触发：
+· 任何出错
+</pre>
+广告设计者需要注意：错误可以通过底层SDK/容器以异步或同步的方式来处理。
+
+MRAID规范没有定义错误事件中的“message”部分，并且主要计划用于广告发布前的创意调试，错误的“action”部分始终是发生错误时尝试使用的方法名称。原则上讲，任何MRAID方法都可能引发错误，因此广告设计者在使用错误监听器时应监听下列所有可能的错误动作：
+<pre>
+	addEventListener					getVersion
+	createCalendarEvent 				isViewable
+	close 								open
+	expand 								playVideo 
+	getCurrentPosition 					removeEventListener
+	getDefaultPosition 					resize
+	getExpandProperties					setExpandProperties
+	getMaxSize 							setResizeProperties 
+	getPlacementType					storePicture 
+	getResizeProperties 				supports 
+	getScreenSize 						useCustomClose
+	getState
+</pre>
+虽然任何MRAID方法都可能导致错误，在实践中，使用resize、添加一张图片到相册或者添加一个事件到日历，是最易产生错误的MRAID方法。广告设计者们在使用这些方法时，应该格外注意添加错误监听器，来检查在执行resize、storePhoto、createCalendarEvent动作时是否发生错误，以便于广告创意有可能采取不同的动作。
 
 
 

@@ -235,7 +235,7 @@ It is required that ads identify themselves as being MRAID compliant. This is do
 
 **MRAID** script reference
 
-The MRAID tag follows HTML Javascript syntax so that both fully formed web pages and HTML fragments can be identified as MRAID ads. mraid.js will be included as a script in the document either using an HTML tag or as javascript. MRAID sample ads (see www.iab.net/mraid) illustrate where the script tag should be positioned.
+The MRAID tag follows HTML Javascript syntax so that both fully formed web pages and HTML fragments can be identified as MRAID ads. mraid.js will be included as a script in the document either using an HTML tag or as javascript. MRAID sample ads ([www.iab.net/mraid](http://www.iab.net/mraid)) illustrate where the script tag should be positioned.
 
 `<script src="mraid.js"></script>`
 

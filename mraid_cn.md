@@ -205,9 +205,43 @@ MRAID2.0继承了MRAID1.0的特性，不但在展开式广告之上，给广告�
 对于可以使用MRAID2.0 API开发的广告示例，请看附录部分。
 
 #	接口需求和定义
+下列清单概括了在MRAID2.0下，广告设计者有权访问的所有方法和事件。MRAID2.0中新增的方法和事件用*标识。
 
+**方法**
+<pre>
+	addEventListener					getVersion
+	createCalendarEvent*				isViewable
+	close 								open
+	expand 								playVideo*
+	getCurrentPosition*					removeEventListener
+	getDefaultPosition*					resize
+	getExpandProperties					setExpandProperties
+	getMaxSize*							setResizeProperties*
+	getPlacementType					storePicture*
+	getResizeProperties*				supports*
+	getScreenSize*						useCustomClose
+	getState
+</pre>
 
+**事件**
+<pre>
+	error 								stateChange
+	ready 								viewableChange
+	sizeChange*
+</pre>
 
+##	标识
+广告必须标识它们自己是符合MRAID规范的。完成这项工作，通过尽早（在任何MRAID函数被创意引用之前）的加入MRAID脚本引用。换言之，MRAID标识脚本必须被符合MRAID规范的容器或SDK最先识别出来。
+
+**MRAID**脚本引用
+
+MRAID标签遵循HTML JavaScript语法，以便完整的网页和HTML片段都可以被标识为MRAID广告。`mraid.js`作为一个脚本将被引入到文档中，或者使用HTML标签，或者使用JavaScript代码。MRAID示例广告（见[www.iab.net/mraid](http://www.iab.net/mraid)）说明了脚本引用标签应该放在哪儿。
+
+`<script src="mraid.js"></script>`
+
+虽然MRAID广告需要尽早的标识它们自己（例如像这样通过mraid.js脚本）以便于容器可以注入MRAID类库，但是当广告创意中为了其它目的时，广告设计者也应避免使用`mraid.js`字符串，因为这样做可能会导致容器或者SDK错误的注入多个MRAID类库副本。
+
+##	初始化
 
 
 

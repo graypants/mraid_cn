@@ -459,7 +459,7 @@ How to read: the initial state of the creative is in the left-most column; how t
 
 <table border="1" cellpadding="3">
 	<tr>
-		<th>Initial ￼state</th>
+		<th>Initial state</th>
 		<th>expand()</th>
 		<th>resize()</th>
 		<th>close()</th>
@@ -505,15 +505,17 @@ getState() -> String
 parameters:
 · none
 return values:
-· String: "loading", "default", "expanded”, “resized,” or “hidden” related events:
+· String: "loading", "default", "expanded”, “resized,” or “hidden” 
+related events:
 · stateChange
 </pre>
 
 “stateChange” -> function(state)
 <pre>
 parameters:
-· state - String, either "loading", "default", "expanded", “resized”, or “hidden” triggered by:
-· expand, close, or the app
+· state - String, either "loading", "default", "expanded", “resized”, or “hidden” 
+triggered by:
+· expand, resize, close, or the app
 </pre>
 
 **getPlacementType()** method
@@ -535,14 +537,15 @@ For efficiency, ad designers sometimes flight a single piece of creative in both
 	</tr>
 </table>
 
-getPlacementType should always return the placement that it initially displayed in. That is, in the case of two-part expandables, the second, expanded part should also see “inline” if it does a getPlacementType.
+getPlacementType should always return the placement that it initially displayed in.That is, in the case of two-part expandables, the second, expanded part should also see “inline” if it does a getPlacementType.
 
 getPlacementType() -> String
 <pre>
 parameters:
 · none
 return values:
-· String: "inline", "interstitial" related events:
+· String: "inline", "interstitial" 
+related events:
 · none
 </pre>
 
@@ -550,7 +553,7 @@ return values:
 
 In addition to the state of the ad container, it is possible that the container is loaded off-screen as part of an application's buffer to help provide a smooth user experience. This is especially prevalent in apps that employ scrolling views or in interstitial ads, for example between levels of a game.
 
-The isViewable method returns whether the ad container is currently on or off the screen. The viewableChange event fires when the ad moves from on-screen to off-screen and vice versa.￼For a two-piece expandable ad, when the ad state is expanded, isViewable will return an answer based on the viewability of the expanded piece of the ad.
+The isViewable method returns whether the ad container is currently on or off the screen. The viewableChange event fires when the ad moves from on-screen to off-screen and vice versa. For a two-piece expandable ad, when the ad state is expanded, isViewable will return an answer based on the viewability of the expanded piece of the ad.
 
 In any situation where an ad may be loaded offscreen, it is a good practice for the ad to check on its viewable state and/or register for viewableChange before taking any action.
 
@@ -561,16 +564,20 @@ isViewable() -> boolean
 parameters:
 · none
 return values:
-· boolean - true: container is on-screen and viewable by the user; false: container is off-
-screen and not viewable related events:
+· boolean - 
+true: container is on-screen and viewable by the user; 
+false: container is off-screen and not viewable 
+related events:
 · viewableChange
 </pre>
 
 “viewableChange” -> function(boolean)
 <pre>
 parameters:
-· boolean - true: container is on-screen and viewable by the user; false: container is off-
-screen and not viewable triggered by:
+· boolean - 
+true: container is on-screen and viewable by the user; 
+false: container is off-screen and not viewable 
+triggered by:
 · a change in the application view controller
 </pre>
 

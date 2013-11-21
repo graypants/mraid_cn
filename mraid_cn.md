@@ -387,7 +387,7 @@ removeEventListener(event, listener)
 参数：
 · message: 字符串，错误描述
 · action: 字符串，引发错误的动作
-通过...触发：
+经由什么触发：
 · 任何出错
 </pre>
 广告设计者需要注意：错误可以通过底层SDK/容器以异步或同步的方式来处理。
@@ -408,6 +408,214 @@ MRAID规范没有定义错误事件中的“message”部分，并且主要计�
 	getState
 </pre>
 虽然任何MRAID方法都可能导致错误，在实践中，使用resize、添加一张图片到相册或者添加一个事件到日历，是最易产生错误的MRAID方法。广告设计者们在使用这些方法时，应该格外注意添加错误监听器，来检查在执行resize、storePhoto、createCalendarEvent动作时是否发生错误，以便于广告创意有可能采取不同的动作。
+
+##	控制广告显示
+除了广告初始化显示，广告设计者或许会有各种理由需要控制广告显示。
+
+* 为了解决广告请求延迟问题，应用程序可能在后台加载视图，但是对用户不可见。
+* 广告可能扩展到超出应用程序内容的默认大小。
+* 一旦用户交互完成，广告可能返回到默认尺寸。
+
+**getState**方法，**stateChange**事件
+
+每个广告容器（或者web view）都有下列其中之一的状态：
+
+<table border="1" cellpadding="3">
+	<tr>
+		<th>状态</th>
+		<th>描述</th>
+	</tr>
+	<tr>
+		<td>loading</td>
+		<td>容器还没有准备好和MRAID实现交互</td>
+	</tr>
+	<tr>
+		<td>default</td>
+		<td>应用程序和SDK设定好广告容器的初始位置和大小</td>
+	</tr>
+	<tr>
+		<td>expanded</td>
+		<td>广告容器已展开覆盖到应用程序内容的最顶层</td>
+	</tr>
+	<tr>
+		<td>resized</td>
+		<td>广告容器已改变大小（通过MRAID2.0 resize()方法）</td>
+	</tr>
+	<tr>
+		<td>hidden</td>
+		<td>插播式广告转变为关闭后的状态。在被支持的情况下，banner广告转变为关闭后的状态</td>
+	</tr>
+</table>
+
+getState方法返回广告容器的当前状态。
+
+当状态被广告（或者环境）程序改变时，会触发stateChange事件。当广告视图在default、expanded、resized、hidden状态之间改变时触发stateChange事件（这些状态都是在调用expand(), resize(), close()产生的）。容器或SDK也可以关闭广告作为用户或系统操作的结果，比如从后台恢复运行。
+
+任何MRAID广告在同一时间只能有一个状态。在two-part展开式广告中，这个要求意味着对于所有web view都只有一种状态。对于只要在屏幕上展开的视图，使用getState()都将返回“expanded”。
+
+调用expand(), resize(), close()对于状态的影响定义如下表：
+
+如何阅读：创意的初始状态在表格最左列；当使用一个MRAID方法时，可以从方法名那列往下查到状态如何变更。举个列子，如果广告的状态是“expanded”并且同时使用了close()方法，那么这个广告的状态变为“default”。
+
+<table border="1" cellpadding="3">
+	<tr>
+		<th>初始状态</th>
+		<th>expand()</th>
+		<th>resize()</th>
+		<th>close()</th>
+	</tr>
+	<tr>
+		<td>loading</td>
+		<td>无影响</td>
+		<td>无影响</td>
+		<td>无影响</td>
+	</tr>
+	<tr>
+		<td>default</td>
+		<td>对于banner广告，状态变为“expanded”，插播式广告则无影响</td>
+		<td>对于banner广告，状态变为“resized”，插播式广告则无影响</td>
+		<td>对于banner广告，状态变为“hidden”（如果SDK/容器支持的话），插播式广告状态则变为“hidden”</td>
+	</tr>
+	<tr>
+		<td>expanded</td>
+		<td>无影响（仍然保持“expanded”状态）</td>
+		<td>引发错误；（仍然保持“expanded”状态）</td>
+		<td>状态变为“default”</td>
+	</tr>
+	<tr>
+		<td>resized</td>
+		<td>状态变为“expanded”</td>
+		<td>状态变为“resized”（也就是说，事件监听器将监听到一个新的stateChange事件，尽管事件触发后状态依旧是“resized”）</td>
+		<td>状态变为“default”</td>
+	</tr>
+	<tr>
+		<td>hidden</td>
+		<td>无影响</td>
+		<td>无影响</td>
+		<td>无影响</td>
+	</tr>
+</table>
+
+在two-piece展开式广告中，一种新类型广告，TODO紧接着“ready”事件被触发，然后广告的状态变为“expanded”。two-piece广告中的banner（第一片）同样也将它的状态从“default”变为“expanded”。
+
+对于插播式广告，web view从“loading”到“default”，当广告关闭时，状态变为“hidden”。
+
+getState() -> String
+<pre>
+参数：
+· none
+返回值：
+· String: "loading"或"default"或"expanded”或“resized”或“hidden” 
+相关事件：
+· stateChange
+</pre>
+
+“stateChange” -> function(state)
+<pre>
+参数：
+· state - String, "loading"或"default"或"expanded”或“resized”或“hidden” 
+经由触发：
+· expand()方法、resize()方法、close()方法或者App
+</pre>
+
+**getPlacementType()**方法
+
+为了提高效率，广告设计师有时会在banner广告和插播式广告放置点全都使用简单的创意。所以创意应能够知道他们的放置类型，并因此引发不同的行为，每个广告容器都有一个放置类型，来确定广告是嵌入在内容中显示（即banner）还是作为插播覆盖到内容上（比如在内容传输过程中）。容器返回放置类型的值以便于创意在需要时引发不同的行为。容器并不确定banner是否能展开（这个由创意决定），因此不会专门为展开式广告返回一个放置类型。
+
+<table border="1" cellpadding="3">
+	<tr>
+		<th>值</th>
+		<th>描述</th>
+	</tr>
+	<tr>
+		<td>inline</td>
+		<td>默认的放置类型是嵌入到内容中显示（即banner）</td>
+	</tr>
+	<tr>
+		<td>interstitial</td>
+		<td>这种广告放置类型是覆盖在内容上面</td>
+	</tr>
+</table>
+
+getPlacementType应该总是返回广告最初显示时设定的值。也就是说，在two-part展开式广告中，如果调用getPlacementType，第二部分（展开的部分）应当同样返回“inline”。
+
+getPlacementType() -> String
+<pre>
+参数：
+· none
+返回值：
+· String: "inline", "interstitial" 
+相关事件：
+· none
+</pre>
+
+**isViewable**方法，**viewableChange**事件
+
+除了广告容器的状态，有一种可能情况就是，为了协助带来流畅的用户体验，广告容器作为App缓存区的一部分已经在屏幕之外加载。在插播式广告中或者采用滚动视图的App中，这种方式格外流行，比如在游戏关卡之间。
+
+isViewable方法返回广告容器当前是否在屏幕上。当广告从屏幕上离开时会触发viewableChange事件，反之亦然。对于two-piece展开式广告，当广告状态为expanded时，isViewable将基于可见的expanded piece返回一个值。
+
+广告在任何情况下都有可能在屏幕外加载，对于广告来说，最佳实践是：检查自身可见状态或者在采取任何行动之前注册viewableChange监听事件。
+
+注意：MRAID并不定义在屏幕上构成广告可见性的最小像素或百分比阀值。（IAB内部目前有一个进行中的项目，为App中的广告尺寸建立指导方针，可能会引入可见性阀值）
+
+isViewable() -> boolean
+<pre>
+参数：
+· none
+返回值：
+· boolean - 
+true：容器在屏幕上并且对用户可见；
+false：容器不在屏幕上并且不可见
+相关事件：
+· viewableChange
+</pre>
+
+“viewableChange” -> function(boolean)
+<pre>
+参数：
+· boolean - 
+true：容器在屏幕上并且对用户可见；
+false：容器不在屏幕上并且不可见
+经由触发：
+· 应用程序视图控制器的改变
+</pre>
+
+下面是一个在行动之前同时考虑到“ready”和“isViewable”的广告示例。
+
+```
+// Wait for the SDK to become ready
+if (mraid.getState() === 'loading') {
+	mraid.addEventListener('ready', onSdkReady);
+} else {
+	onSdkReady();
+}
+
+function onSdkReady() {
+	// Wait for the ad to become viewable for the first time
+	if (mraid.isViewable()) {
+		showMyAd();
+	} else {
+		mraid.addEventListener('viewableChange',function(viewable) {
+			if (viewable) {
+				mraid.removeEventListener('viewableChange', arguments.callee);
+				showMyAd();
+			}
+		}); 
+	}
+}
+
+function showMyAd() {
+... 
+}
+```
+
+
+
+
+
+
+
 
 
 

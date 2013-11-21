@@ -408,3 +408,215 @@ While the “message” part of the error event is not defined by the MRAID spec
 	getState
 </pre>
 While any MRAID method may lead to an error, in practice using resize, adding an image to a device’s photo album or adding an event to a calendar are the most likely MRAID methods to generate errors. Ad designers using those methods should be particularly diligent about adding an error listener to check whether an error occurs on a resize, storePhoto, or createCalendarEvent action, so that the ad creative can potentially take a different action.
+
+##	_Controlling Ad Display_
+Besides the initial display, the ad designer may have a number of reasons to control the display.
+
+* An application may load views in the background to help with latency issues so that an ad is requested, but not visible to the user.
+* The ad may expand beyond the default size over the application content.
+* The ad may return to the default size once user interaction is complete.
+
+**getState** method, **stateChange** event
+
+Each ad container (or Webview) has a state that is one of the following:
+
+<table border="1" cellpadding="3">
+	<tr>
+		<th>value</th>
+		<th>description</th>
+	</tr>
+	<tr>
+		<td>loading</td>
+		<td>the container is not yet ready for interactions with the MRAID implementation</td>
+	</tr>
+	<tr>
+		<td>default</td>
+		<td>the initial position and size of the ad container as placed by the application and SDK</td>
+	</tr>
+	<tr>
+		<td>expanded</td>
+		<td>the ad container has expanded to cover the application content at the top of the view hierarchy</td>
+	</tr>
+	<tr>
+		<td>resized</td>
+		<td>the ad container has changed size via MRAID 2.0’s resize() method</td>
+	</tr>
+	<tr>
+		<td>hidden</td>
+		<td>the state an interstitial ad transitions to when closed. Where supported, the state a banner ad transitions to when closed</td>
+	</tr>
+</table>
+
+The getState method returns the current state of the ad container, returning whether the ad container is in its default, fixed position or is in an expanded or resized, larger position, or hidden.
+
+The stateChange event fires when the state is changed programmatically by the ad or by the environment. This event is triggered when the Ad View changes between default, expanded, resized, and hidden states as the result of an expand(), resize(), or a close(). The container or SDK may also close an ad as the result of a user or system action, such as resuming from background.
+
+Any MRAID ad can have only one state at a time. In the case of two-part expandable ads, this requirement means there is only one state for both web views. For as long as the expanded view is onscreen, using getState() will return “expanded.”
+
+The effect on state from calling expand(), resize(), and close() are defined in this table.
+
+How to read: the initial state of the creative is in the left-most column; how the state changes when an MRAID method is used can be found by looking down the column for that method. So for example, if the ad’s state is “expanded” and the close() method is used, the ad’s state changes to “default.”
+
+<table border="1" cellpadding="3">
+	<tr>
+		<th>Initial ￼state</th>
+		<th>expand()</th>
+		<th>resize()</th>
+		<th>close()</th>
+	</tr>
+	<tr>
+		<td>loading</td>
+		<td>no effect</td>
+		<td>no effect</td>
+		<td>no effect</td>
+	</tr>
+	<tr>
+		<td>default</td>
+		<td>For a banner, state changed to “expanded” For an interstitial, no effect</td>
+		<td>For a banner, state changed to “resized” For an interstitial, no effect</td>
+		<td>For a banner, state changed to “hidden” (if supported by SDK/container) For an interstitial, state changed to “hidden”</td>
+	</tr>
+	<tr>
+		<td>expanded</td>
+		<td>no effect (state remains “expanded”)</td>
+		<td>triggers an error; state remains “expanded”</td>
+		<td>state changed to “default”</td>
+	</tr>
+	<tr>
+		<td>resized</td>
+		<td>state changed to “expanded”</td>
+		<td>state changed to “resized” (that is, an event listener will hear a new stateChange event, even though the state is still “resized” after the event fires)</td>
+		<td>state changed to “default”</td>
+	</tr>
+	<tr>
+		<td>hidden</td>
+		<td>no effect</td>
+		<td>no effect</td>
+		<td>no effect</td>
+	</tr>
+</table>
+
+In the case of a two-piece expandable, the new, expanded web view starts in the “loading” state briefly until MRAID is available, upon which the “ready” event is fired and the state of the ad then transitions to “expanded.” The banner (the first piece) of the two-piece ad also changes its state, from “default” to “expanded.”
+
+For an interstitial ad, the web view goes from “loading” to “default,” and when the interstitial is closed, the state changes to “hidden.”
+
+getState() -> String
+<pre>
+parameters:
+· none
+return values:
+· String: "loading", "default", "expanded”, “resized,” or “hidden” related events:
+· stateChange
+</pre>
+
+“stateChange” -> function(state)
+<pre>
+parameters:
+· state - String, either "loading", "default", "expanded", “resized”, or “hidden” triggered by:
+· expand, close, or the app
+</pre>
+
+**getPlacementType()** method
+
+For efficiency, ad designers sometimes flight a single piece of creative in both banner and interstitial placements. So that the creative can be aware of its placement, and therefore potentially behave differently, each ad container has a placement type determining whether the ad is being displayed inline with content (i.e. a banner) or as an interstitial overlaid content (e.g. during a content transition). The container returns the value of the placement to creative so that creative can behave differently as necessary. The container does not determine whether a banner is an expandable (the creative does) and thus does not return a separate type for expandable.
+
+<table border="1" cellpadding="3">
+	<tr>
+		<th>value</th>
+		<th>description</th>
+	</tr>
+	<tr>
+		<td>inline</td>
+		<td>the default ad placement is inline with content in the display (i.e. a banner)</td>
+	</tr>
+	<tr>
+		<td>interstitial</td>
+		<td>the ad placement is over laid on top of content</td>
+	</tr>
+</table>
+
+getPlacementType should always return the placement that it initially displayed in. That is, in the case of two-part expandables, the second, expanded part should also see “inline” if it does a getPlacementType.
+
+getPlacementType() -> String
+<pre>
+parameters:
+· none
+return values:
+· String: "inline", "interstitial" related events:
+· none
+</pre>
+
+**isViewable** method, **viewableChange** event
+
+In addition to the state of the ad container, it is possible that the container is loaded off-screen as part of an application's buffer to help provide a smooth user experience. This is especially prevalent in apps that employ scrolling views or in interstitial ads, for example between levels of a game.
+
+The isViewable method returns whether the ad container is currently on or off the screen. The viewableChange event fires when the ad moves from on-screen to off-screen and vice versa.￼For a two-piece expandable ad, when the ad state is expanded, isViewable will return an answer based on the viewability of the expanded piece of the ad.
+
+In any situation where an ad may be loaded offscreen, it is a good practice for the ad to check on its viewable state and/or register for viewableChange before taking any action.
+
+Note that MRAID does not define a minimum threshold percentage or number of pixels of the ad that must be onscreen to constitute “viewable.”(The IAB currently has a project underway to establish guidelines for in-app ad measurement, potentially including a viewability threshold, is currently underway within the IAB.)
+
+isViewable() -> boolean
+<pre>
+parameters:
+· none
+return values:
+· boolean - true: container is on-screen and viewable by the user; false: container is off-
+screen and not viewable related events:
+· viewableChange
+</pre>
+
+“viewableChange” -> function(boolean)
+<pre>
+parameters:
+· boolean - true: container is on-screen and viewable by the user; false: container is off-
+screen and not viewable triggered by:
+· a change in the application view controller
+</pre>
+
+Below is an example of an ad that takes into account both “Ready” and “isViewable” before taking action.
+
+```
+// Wait for the SDK to become ready
+if (mraid.getState() === 'loading') {
+	mraid.addEventListener('ready', onSdkReady);
+} else {
+	onSdkReady();
+}
+
+function onSdkReady() {
+	// Wait for the ad to become viewable for the first time
+	if (mraid.isViewable()) {
+		showMyAd();
+	} else {
+		mraid.addEventListener('viewableChange',function(viewable) {
+			if (viewable) {
+				mraid.removeEventListener('viewableChange', arguments.callee);
+				showMyAd();
+			}
+		}); 
+	}
+}
+
+function showMyAd() {
+... 
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -610,8 +610,162 @@ function showMyAd() {
 }
 ```
 
+##	_Changing the Size of an Ad_
 
+MRAID v2 includes three distinct ways for an ad to change its size. By far the simplest is to use the open() method, which is intended for click-throughs where an entire web site is loaded in a new browser window (generally this will be a browser running within the app, but it may be the device’s native browser).
 
+The expand() method is intended for ads that expand in a fairly simple, straightforward way to cover the content of the application.
+
+In addition to these, the resize() method is intended for ads that grow or shrink in more subtle ways, in a dialogue with the app in which it is running. This method allows designers complete freedom and control – with the trade-off that additional methods and listeners are required for both the ad creative and the app/container to react appropriately in different placements.
+
+###	Differences between resize(), expand(), and open()
+
+Although these methods are related, they promote an approach of progressive complexity. That is, simple operations should be simple, but sophisticated efforts are still be possible. Understanding the distinction between resize(), expand() and open() helps ad designers choose the best method for their needs.
+
+open()
+
+* lowest common denominator
+* used for advertiser landing pages or microsites
+* opens a new URL, generally in a browser window within the app, however may open
+in the device’s native browser
+* always full screen
+* no additional properties
+
+expand()
+
+* simple interface
+* maintains ad experience
+* full screen
+* few additional properties
+* support for one-part or two-part creatives
+* MRAID-enforced tap-to-close area in fixed (top right) location
+* relative alignment for creatives
+
+resize()
+
+* flexible interface
+* continuous, non-modal ad experience
+* no default values, can change to larger or smaller sizes
+* additional properties and methods required
+* one-part creatives only
+* MRAID-enforced tap-to-close area, but ad designer can change the close area’s position within the creative area.
+* absolute positioning possible
+* supports direction of resizing
+
+This table summarizes the differences between these methods.
+
+<table border="1" cellpadding="3">
+	<tr>
+		<th>property</th>
+		<th>open()</th>
+		<th>expand()</th>
+		<th>resize()</th>
+	</tr>
+	<tr>
+		<td>modal</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>N</td>
+	</tr>
+	<tr>
+		<td>MRAID-enforced close control</td>
+		<td>N</td>
+		<td>Y</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>viewer stays within ad experience</td>
+		<td>N</td>
+		<td>Y</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>two-part creatives</td>
+		<td>n/a</td>
+		<td>Y</td>
+		<td>N</td>
+	</tr>
+	<tr>
+		<td>one-part creatives</td>
+		<td>n/a</td>
+		<td>Y</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>aligned to screen</td>
+		<td>n/a</td>
+		<td>Y</td>
+		<td>N</td>
+	</tr>
+	<tr>
+		<td>background provided for small creatives</td>
+		<td>n/a</td>
+		<td>Y</td>
+		<td>N</td>
+	</tr>
+	<tr>
+		<td>size up</td>
+		<td>n/a</td>
+		<td>Y</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>size down</td>
+		<td>n/a</td>
+		<td>N</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>app-defined max area</td>
+		<td>n/a</td>
+		<td>N</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>callback required to complete</td>
+		<td>n/a</td>
+		<td>N</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>supports directionality</td>
+		<td>n/a</td>
+		<td>N</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>creative can control position of resized ad</td>
+		<td>n/a</td>
+		<td>N</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>app can return to default state</td>
+		<td>n/a</td>
+		<td>N</td>
+		<td>Y</td>
+	</tr>
+</table>
+
+In MRAID 2.0 the creation of partial-screen non-modal expansions requires using the resize() method. The deprecation of the expand property “isModal” is reflected in this usage chart. Under MRAID 2.0, calling expand() using expanded creative that is smaller than the size of the full screen requires the container web view blank out, cover, or otherwise obscure the underlying app to make it very clear to the end user that the expanded ad is modal in nature. In that sense, modal, partial screen ads are not allowed in MRAID 2.0.
+
+<table border="1" cellpadding="3">
+	<tr>
+		<th></th>
+		<th>Modal</th>
+		<th>Non-modal</th>
+	</tr>
+	<tr>
+		<th>Full Screen</th>
+		<td>OK - Use expand()</td>
+		<td>Not possible</td>
+	</tr>
+	<tr>
+		<th>Partial Screen</th>
+		<td>Not possible</td>
+		<td>OK - Use resize()</td>
+	</tr>
+</table>
 
 
 

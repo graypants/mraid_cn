@@ -626,8 +626,7 @@ open()
 
 * lowest common denominator
 * used for advertiser landing pages or microsites
-* opens a new URL, generally in a browser window within the app, however may open
-in the device’s native browser
+* opens a new URL, generally in a browser window within the app, however may open in the device’s native browser
 * always full screen
 * no additional properties
 

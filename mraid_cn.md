@@ -610,6 +610,181 @@ function showMyAd() {
 }
 ```
 
+##	改变广告尺寸
+
+MRAID2.0包含三种截然不同的方式，来为广告改变尺寸。目前最简单的方式就是使用open()方法，它适用于那些需要在新浏览器窗口（通常是App内嵌浏览器，但是也有可能是设备原生浏览器）加载、为了点击率的网站。
+
+expand()方法适用于那些用简单直接的方式覆盖到应用内容上的广告。
+
+除了这些，resize()方法适用于那些需要精细缩小或放大的广告，与其所运行的app进行对话。这个方法给了广告设计者完全的自由，
+
+###	rezie(), expand(), open()之间的区别
+
+虽然这些方法都是相关联的，但他们提倡渐进的复杂性。也就是说，简单的操作应当是简单的，但是复杂的结果仍然可行。理解rezie(), expand(), open()之间的区别有助于广告设计者根据需要选择更好的方法。
+
+open()
+
+* 最低通用标准
+* 用于广告主的着陆页或迷你站
+* 打开一个新的URL，通常是App内嵌浏览器，然后也有可能是设备原生浏览器
+* 总是全屏
+* 没有附加属性
+
+expand()
+
+* 简单的接口
+* 生硬的广告体验
+* 全屏
+* 少量的附加属性
+* 支持one-part或two-part创意
+* 在固定位置（右上角）有MRAID强制性关闭广告区
+* 对于创意相对定位
+
+rezie()
+
+* 灵活的接口
+* 连续，非模态的广告体验
+* 没有默认值，尺寸可变大变小
+* 必须的附加属性
+* 有MRAID强制性广告关闭区，但是广告设计者可以在创意内改变这个区域的位置
+* 可能是绝对定位
+* 支持调整大小时指定方向
+
+
+这个表格内总结了这些方法之间的区别。
+
+<table border="1" cellpadding="3">
+	<tr>
+		<th>属性</th>
+		<th>open()</th>
+		<th>expand()</th>
+		<th>resize()</th>
+	</tr>
+	<tr>
+		<td>模态的</td>
+		<td>Y</td>
+		<td>Y</td>
+		<td>N</td>
+	</tr>
+	<tr>
+		<td>强制关闭控制/td>
+		<td>N</td>
+		<td>Y</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>浏览者停留在广告里</td>
+		<td>N</td>
+		<td>Y</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>two-part创意</td>
+		<td>n/a</td>
+		<td>Y</td>
+		<td>N</td>
+	</tr>
+	<tr>
+		<td>one-part创意</td>
+		<td>n/a</td>
+		<td>Y</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>与屏幕对齐</td>
+		<td>n/a</td>
+		<td>Y</td>
+		<td>N</td>
+	</tr>
+	<tr>
+		<td>给一些小创意提供背景</td>
+		<td>n/a</td>
+		<td>Y</td>
+		<td>N</td>
+	</tr>
+	<tr>
+		<td>向上增大尺寸</td>
+		<td>n/a</td>
+		<td>Y</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>向下减小尺寸</td>
+		<td>n/a</td>
+		<td>N</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>应用程序的最大区域</td>
+		<td>n/a</td>
+		<td>N</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>完成必须回调</td>
+		<td>n/a</td>
+		<td>N</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>支持方向</td>
+		<td>n/a</td>
+		<td>N</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>创意能控制尺寸改变后的广告</td>
+		<td>n/a</td>
+		<td>N</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td>App能返回默认状态</td>
+		<td>n/a</td>
+		<td>N</td>
+		<td>Y</td>
+	</tr>
+</table>
+
+
+在MRAID2.0标准中，创建半屏非模态扩展必须使用resize()方法。下列表格反映出expand的“isModal”属性被强烈反对使用。MRAID2.0规范下，非全屏展开式创意中调用expand()必须要求web view容器是空白的，采用覆盖或者将下层App变模糊来突显广告，也就是说，扩展式广告本质是模态的。从这种意义上来讲，模态半屏式广告在MRAID2.0中是不允许的。
+
+<table border="1" cellpadding="3">
+	<tr>
+		<th></th>
+		<th>模态</th>
+		<th>非模态</th>
+	</tr>
+	<tr>
+		<th>全屏</th>
+		<td>使用expand()</td>
+		<td>不可能</td>
+	</tr>
+	<tr>
+		<th>半屏</th>
+		<td>不可能</td>
+		<td>使用resize()</td>
+	</tr>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

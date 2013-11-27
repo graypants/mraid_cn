@@ -496,7 +496,7 @@ getState方法返回广告容器的当前状态。
 	</tr>
 </table>
 
-在two-piece展开式广告中，一种新类型广告，TODO紧接着“ready”事件被触发，然后广告的状态变为“expanded”。two-piece广告中的banner（第一片）同样也将它的状态从“default”变为“expanded”。
+在two-piece展开式广告中，一种新类型广告，展开后的web view从“loading”状态开始直到MRAID可用，紧接着“ready”事件被触发，然后广告的状态变为“expanded”。two-piece广告中的banner（第一片）同样也将它的状态从“default”变为“expanded”。
 
 对于插播式广告，web view从“loading”到“default”，当广告关闭时，状态变为“hidden”。
 
@@ -616,7 +616,7 @@ MRAID2.0包含三种截然不同的方式，来为广告改变尺寸。目前最
 
 expand()方法适用于那些用简单直接的方式覆盖到应用内容上的广告。
 
-除了这些，resize()方法适用于那些需要精细缩小或放大的广告，与其所运行的app进行对话。这个方法给了广告设计者完全的自由，
+除了这些，resize()方法适用于那些需要精细缩小或放大的广告，与其所运行的App进行对话。这个方法允许广告设计者完全自由的控制和权衡：创意和App/容器同时需要额外的方法和监听器，以在不同的放置点有恰当的响应。
 
 ###	rezie(), expand(), open()之间的区别
 

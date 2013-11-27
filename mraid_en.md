@@ -766,6 +766,199 @@ In MRAID 2.0 the creation of partial-screen non-modal expansions requires using 
 	</tr>
 </table>
 
+##	_Open: Open an External Mobile Web Site in a Browser Window_
+
+If the ad needs to open an external mobile web site, or micro site, from an MRAID ad, it can call the open method which will open a browser window to view the external HTML content. Wherever possible, this will be via an embedded browser in the application.
+
+**open** method
+
+The open method will display an embedded browser window in the application that loads an external URL. On device platforms that do not allow an embedded browser, the open method invokes the native browser with the external URL.
+
+_Note: This should be used only for external web pages that are not MRAID ads. The displayed page will not load the app’s MRAID-compliant SDK and so the close method will not have any effect on the embedded browser. It can only be closed by the user selecting the close control for the window, which is implementation specific._
+
+Use this method to open an HTML browser to an external web page. This may launch an external browser, depending on the implementation. To remain within an MRAID ad experience, use the expand() method instead.
+
+The native browser controls – back, forward, refresh, close – will always be present. For reporting, open() may be used by SDK vendors as a reportable event.
+
+open(URL)
+<pre>
+parameters:
+· URL - String, the URL of the web page
+return values:
+· None
+</pre>
+
+##	_Hyperlinks_
+
+When the user clicks on an HTML hyperlink (defined by an `<a href=””>` tag) in an MRAID ad, there are two possibilities: the linked page could load in the existing ad web view, or the content could open a separate browser window and load the indicated HTML link there. MRAID-compliant SDKs can opt for either strategy, so ad designers should avoid using inline hyperlinks and window.location changes. mraid.open() is the appropriate and correct way for an MRAID ad to specify that a link should open a page in a separate browser. Loading a new web page in the ad view that is not written to the MRAID spec can leave the ad, and possibly the app, in an unusable state.
+
+##	_Handling Call-to-Action Events_
+
+A rich media ad implements multiple call-to-action events beyond the tap to microsite. These events may be executed as anchor links or scripted functions. This means a container or SDK cannot just listen for taps in the browser. It must support programmatic taps/clicks (e.g., window.location changes) as well.
+
+##	_Expand: Simple, Modal, Increase in Size of the Ad_
+
+For ad creative that changes size in a relatively simple manner, typically expanding from banner to full-screen size, the expand method provides a simple way to communicate this to the container.
+
+**expand** method
+
+The expand method will cause an existing web view (for one-part creatives) or a new web view (for two-part creatives) to open at the highest level (e.g., at a higher z-index value than any app content) in the view hierarchy. The expanded view can either contain a new HTML document if a URL is specified, or it can reuse the same document that was in the default position. While an ad is in an expanded state, the default position will generally be obscured or inaccessible to the viewer, so the default position should take no action while the expanded state is available. Thus a complete implementation allows for ad designers to use one-part ads (where the banner and panel are part of one creative) and two-part ads (where the banner and panel are separate HTML creatives).
+
+The expand method may change the size of the ad container, and will move state from "default" or “resized” to "expanded" and fire the stateChange event. In the case of both one-piece ads and two-piece ads, calling expand() multiple times will be ignored, and multiple expand calls have no effect on state (which remains “expanded”).
+
+An expanded view must cover all available screen area even though the ad creative may not (e.g. via a transparent or opaque overlay). The expanded ad is always modal, and naturally the container should prevent new ads from loading during the expand state so that the user can complete any desired interactions with the ad creative without interruption. Other application-specific difficulties such as poorly built apps with multiple window objects, or timers that change the content z-order, must be considered by vendors when implementing the expand method.
+
+An expanded view must provide an end-user with the ability to close the expanded creative. These requirements are discussed further in the description of closing expandable and interstitial ads, below.
+
+Placement of the expanded ad on screen, especially when the expanded view can be placed in multiple locations, is left to the ad designer. For full-screen expands, all MRAID compliant SDKs will grant the full device screen space and will position the ad so it is fully visible.
+
+When the ad size is greater or smaller than the screen size of the device, the SDK will size the web view to be identical to the maximum size allowed by t device and app. The creative will not be scaled down or up to the size of the device’s screen; rather it will be up to the ad creative to position itself appropriately within the expanded web view via CSS.
+
+![expand](./images/c.jpg)
+
+When the expand method is called without the URL parameter, the current view will be reused, simplifying reporting and ad creation. The original creative is not reloaded and no additional impressions are recorded. Implementing this definition allows for one-part creatives.
+
+When the expand method is called with the URL parameter, a new view will be used. Implementing this definition allows for two-part creatives. When a two-part expandable is used, the second part (pointed to by the URL) must always be a complete HTML page (not a snippet/fragment), and must separately request mraid.js from the SDK/container (assuming it needs MRAID). Whether the expanded part of the ad requests mraid.js or not, the container will always supply the close control and (optionally, depending on how expandProperties are set) the close indicator.
+
+expand([URL])
+<pre>
+parameters:
+· URL (optional): The URL for the document to be displayed in a new overlay view. If null or a non-URL parameter is used, the body of the current ad will be used in the current webview.
+return values:
+· none
+events triggered:
+stateChange
+</pre>
+
+##	_Controlling Expand Properties_
+The expand properties object is intended to provide additional features to ad designers. Expand properties that can be set by the ad designer are limited to the width and height of the ad creative, and whether the creative is supplying its own close indicator. The expandProperties are held in a JavaScript object that can be written and read by the ad. Ad designers can also control the orientation of an expandable ad via orientation properties, set separately.
+
+Expand properties can only be set BEFORE the ad calls expand(). Changes after the ad is in its expanded state will be ignored.
+
+```
+expandProperties object = { “width” : integer,
+“height” : integer,
+“useCustomClose” : boolean,
+“isModal” : boolean (read only)
+}
+```
+
+properties:
+
+* width : integer – width of creative, default is full screen width.
+* height : integer – height of creative, default is full screen height. Note that when getting the expand properties before setting them, the values for width and height will reflect the actual values of the screen. This will allow ad designers who want to use application or device values to adjust as necessary.
+* useCustomClose : boolean – true, container will stop showing default close graphic and rely on ad creative’s custom close indicator; false (default), container will display the default close graphic. This property has exactly the same function as the useCustomClose method (described below), and is provided as a convenience for creators of expandable ads.
+* isModal : boolean – true, the container is modal for the expanded ad; false, the container is not modal for the expanded ad; this property is read-only and cannot be set by the ad designer. Note that while this could be false in MRAID 1.0, in MRAID v2.0 will always return “true.”
+
+**getExpandProperties** method
+
+The getExpandProperties method returns the whole JavaScript Object expandProperties object.
+
+Use this method to get the properties for expanding an ad.
+
+getExpandProperties() -> JavaScript Object
+<pre>
+parameters:
+· none
+return values:
+· { ... } - this object contains the expand properties
+events triggered:
+· none
+</pre>
+
+**setExpandProperties** method
+
+The setExpandProperties method sets the whole JavaScript object.
+
+setExpandProperties(properties)
+
+Use this method to set the ad's expand properties, including the maximum width and height of the ad creative.
+
+<pre>
+parameters:
+· properties: JavaScript Object { ... } - this object contains the width and height of the expanded ad. For more info see properties object.
+return values:
+· none
+events triggered:
+· none
+</pre>
+
+##	_Controlling Orientation Properties_
+The orientation properties object is intended to provide ad designers with additional control over expandable and interstitial ads. The orientationProperties are held in a JavaScript object that can be written and read by the ad. The orientationProperties object only affects the expanded state of an expandable ad, or an interstitial ad. A banner in its default state cannot use orientationProperties to prevent the app from reorienting or force the app to switch to a different orientation layout. Resizeable ads can use orientationproperties, but they won’t have any effect.
+
+```
+orientationProperties object = { 
+"allowOrientationChange" : boolean,
+"forceOrientation" : "portrait|landscape|none"
+}
+```
+
+* allowOrientationChange : boolean -- If set to “true” then the container will permit device-based orientation changes; if set to false, then the container will ignore device-based orientation changes (e.g., the web view will not change even if the orientation of the device changes). Default is “true.” The ad creative is always able to request a change of its orientation by setting the forceOrientation variable, regardless of how allowOrientationChange is set.
+* forceOrientation : string – can be set to a value of “portrait,” landscape,” or “none.” If forceOrientation is set then a view must open in the specified orientation, regardless of the orientation of the device. That is, if a user is viewing an ad in landscape mode, and taps to expand it, if the ad designer has set the forceOrientation orientation property to “portrait” then the ad will open in portrait orientation. Default is “none.”
+
+To enable finer control over ad behavior, an ad designer can change the setting of either of the orientation properties after the ad is in an expanded state. This way an ad may start in portrait but instruct the user to change orientation to play a game. The game requires tilting so no orientation changes should be allowed until the user is done. MRAID-compliant SDKs must be able to accept changes to expand properties throughout a user’s interaction with an expandable ad.
+
+For example:
+
+```
+mraid.setOrientationProperties ( {"allowOrientationChange":true} );
+mraid.expand()
+/* user changes to landscape, starts game */
+mraid.setOrientationProperties ( {"allowOrientationChange": false } );
+/* user is done with game */
+mraid.setOrientationProperties ( {"allowOrientationChange":true} );
+```
+
+**getOrientationProperties** method
+
+The getOrientationProperties method returns the whole JavaScript object orientationProperties object.
+
+Use this method to get the properties for the orientation of the expanded part of an expandable, or an interstitial ad.
+
+getOrientationProperties() -> JavaScript Object
+<pre>
+parameters:
+· none
+return values:
+· { ... } - this object contains the orientation properties
+events triggered:
+· none
+</pre>
+
+**setOrientationProperties** method
+
+The setOrientationProperties method sets the JavaScript orientationProperties object.
+
+setOrientationProperties(properties)
+
+Use this method to set the ad's orientation properties.
+
+<pre>
+parameters:
+· properties: JavaScript Object { ... } - this object contains the values for allowOrientationChange and forceOrientation.
+return values:
+· none
+events triggered:
+· none
+</pre>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

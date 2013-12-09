@@ -831,7 +831,7 @@ stateChange
 </pre>
 
 ##	控制expand属性
-expand属性是为了给广告设计者提供额外的功能。广告设计者可以通过设置expand属性来限制广告素材的宽和高，不管创意是否提供了自定义的关闭指引。expandProperties保存在一个广告设计者可读写的JavaScript对象中。广告设计者也可以通过方向属性单独的控制展开式广告的方向。
+expand属性是为了给广告设计者提供额外的功能。广告设计者可以通过设置expand属性来限制广告素材的宽和高，不管创意是否提供了自定义的关闭指引。expandProperties保存在一个可读写的JavaScript对象中。广告设计者也可以通过方向属性单独的控制展开式广告的方向。
 
 expand属性只能在expand()方法调用之前设置。当广告处于expanded状态时，设置expand属性将没有效果。
 
@@ -884,17 +884,64 @@ setExpandProperties(properties)
 · none
 </pre>
 
+##	控制方向属性
+对于展开式广告和插播式广告，orientation属性对象为广告设计者提供了更多的控制权。orientationProperties保存在一个可读写的JavaScript对象中。orientationProperties只影响处于expanded状态的展开式广告或插播式广告。一个处于default状态的banner不能使用orientationProperties来阻止App重新定向，或者强迫App切换到一个不同的方向布局。缩放式广告可以使用orientation属性，但是它们将不会产生任何作用。
 
+```
+orientationProperties object = { 
+"allowOrientationChange" : boolean,
+"forceOrientation" : "portrait|landscape|none"
+}
+```
 
+* allowOrientationChange: boolean —— 如果设置为true，广告容器将允许基于设备取向的变化；如果设置为false，则忽略这种变化（例如：即使设备改变方向，web view也不会改变）。默认值是true。不管allowOrientationChange如何设定，广告创意通过设置forceOrientation的值总是可以改变它们的方向。
+* forceOrientation: string —— 可以设置portrait、landscape、none其中一个值。如果设置了forceOrientation的值，不管设备的方向如何，视图都必须以特定方向打开。也就是说，如果用户在横屏模式下观看广告，并且点击展开它，如果广告设计者把forceOrientation的属性设置为portrait，那么广告将以竖屏模式打开。默认值为none。
 
+为了能更精细的控制广告行为，在广告处于expanded之后，无论方向属性是什么，广告设计者都可以改变它的值。这种广告或许在横屏模式启动，但指引用户改变方向来玩一个游戏。游戏需求倾向于，除非用户完成它，否则不允许用户改变方向。MRAID兼容的SDK必须能够接受各处用户交互的方向属性改变
 
+举个例子：
 
+```
+mraid.setOrientationProperties ( {"allowOrientationChange":true} );
+mraid.expand()
+/* user changes to landscape, starts game */
+mraid.setOrientationProperties ( {"allowOrientationChange": false } );
+/* user is done with game */
+mraid.setOrientationProperties ( {"allowOrientationChange":true} );
+```
 
+**getOrientationProperties** 方法
 
+getOrientationProperties方法返回完整的含有orientation属性的JavaScript对象。
 
+使用这个方法为展开式广告的展开部分或者插播式广告获取方向属性。
 
+getOrientationProperties() -> JavaScript Object
+<pre>
+参数：
+· none
+返回值：
+· { ... } —— 这个对象包含orientation属性。
+触发事件：
+· none
+</pre>
 
+**setOrientationProperties** 方法
 
+setOrientationProperties设置JavaScript方向属性对象。
+
+setOrientationProperties(properties)
+
+使用这个方法设置广告的方向属性。
+
+<pre>
+参数：
+· properties: JavaScript Object { ... } —— 这个对象包含allowOrientationChange和forceOrientation的值。
+返回值：
+· none
+触发事件：
+· none
+</pre>
 
 
 

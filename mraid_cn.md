@@ -831,9 +831,58 @@ stateChange
 </pre>
 
 ##	控制expand属性
+expand属性是为了给广告设计者提供额外的功能。广告设计者可以通过设置expand属性来限制广告素材的宽和高，不管创意是否提供了自定义的关闭指引。expandProperties保存在一个广告设计者可读写的JavaScript对象中。广告设计者也可以通过方向属性单独的控制展开式广告的方向。
 
+expand属性只能在expand()方法调用之前设置。当广告处于expanded状态时，设置expand属性将没有效果。
 
+```
+expandProperties object = { 
+“width” : integer,
+“height” : integer,
+“useCustomClose” : boolean,
+“isModal” : boolean (read only)
+}
+```
 
+属性：
+
+* width：integer —— 创意的宽度，默认为全屏后的宽。
+* height：integer —— 创意的高度，默认为全屏后的高。注意在设置前得到的宽高属性值实际上就是屏幕的宽高值。这允许那些想使用App或设备尺寸信息的广告设计者，在有必要时进行调整。
+* useCustomClose: boolean —— 为true时，广告容器不再显示默认的关闭图标，依赖广告创意自定义关闭指引；为false时（默认），显示默认关闭图标。此属性有一个完全相同功能的useCustomClose方法（下文中有描述），方便广告创建者使用。
+* isModal: boolean —— 为true时，广告容器是模态的；为false时，广告容器是非模态的。这是一个只读属性。注意在MRAID1.0中，它的值可以是false，但在MRAID2.0中永远返回true。
+
+**getExpandProperties** 方法
+
+getExpandProperties方法返回完整的含有expand属性的JavaScript对象。
+
+使用此方法来获取属性扩展广告。
+
+getExpandProperties() -> JavaScript Object
+<pre>
+参数：
+· none
+返回值：
+· { ... } - this object contains the expand properties
+触发事件:
+· none
+</pre>
+
+**setExpandProperties** 方法
+
+setExpandProperties设置整个含有expand属性的JavaScript对象。
+
+setExpandProperties(properties)
+
+使用这个方法设置广告的展开属性，包括广告创意的最大宽度和高度。
+
+<pre>
+参数：
+· properties: JavaScript Object { ... } —— 这个对象包含广告的宽高值，更多属性参考properties对象.
+返回值：
+· none
+触发事件：
+· none
+</pre>
 
 
 

@@ -944,6 +944,165 @@ events triggered:
 </pre>
 
 
+##	_Closing Expandable and Interstitial Ads_
+
+An MRAID-compliant SDK must provide an end-user with the ability to close an expanded or interstitial ad. This is a requirement to ensure that users are always able to return to the publisher content even if an ad has an error. The ad designer may optionally provide additional design elements to close the expanded or interstitial view via the close() method, described below. MRAID differentiates two aspects to a “close” feature:
+
+* Close Event Region: The close event region is a tappable area on the ad creative that will cause the ad to close and return to its default state. The close event region is required and supplied by the container in the top-right corner of all MRAID expandable and interstitial ads.
+* Close Indicator: The close indicator is the visual cue to the user as to the location of the close event region. By default the container will supply a close indicator superimposed on the close event region. Optionally, the creative designer can use their own close indicator graphic, in which case they can suppress the default close indicator.
+
+MRAID requires the location reserved for the close event region be a 50x50 clickable area in the top-right corner of the ad container. Reserving this location provides consistency for ad designers running campaigns across apps and rich media vendors. The default design of the container-controlled close indicator is left to the vendor/app publisher. Ad designers may optionally choose to provide the indicator for the default close capability. If the ad designer builds the close indicator into the creative they must specify so via the useCustomClose() method, or as a convenience by setting useCustomClose in the expandProperties() object. If the ad designer does not provide its own close indicator graphic within the creative, the container will supply its default close indicator. This container-supplied tappable area will be placed at a higher level than other app or ad content, and must always be available to the end user.
+
+**For Two-Part Ads:** If expand was used with a URL parameter (e.g., a two-part ad), then closing the ad must display the original content. If the app was suspended when the ad changed to the expand state, then the app should be notified of the expansion status change.
+
+**For One-Part Ads:** If the expanded or interstitial ad view was closed using the container-supplied close event region, then the stateChange event is still fired and the app still notified of the expansion status change. Expanded ads must always listen for the stateChange event and adjust as necessary.
+
+**close** method
+
+The close method will cause the ad container to downgrade its state. For ads in an expanded or resized state, the close() method moves the ad to a default state. For interstitial ads in a default state, the close() method moves to a hidden state. For banners in a default state, the effect of calling close() is deliberately left undefined by the MRAID specification. Depending on the implementation, it may be ignored, cause an error, or change the state of the banner to “hidden.” As a result it is generally not recommended that ad designers use mraid.close() in a banner. This method may be used by ad designers as an addition to the MRAID-enforced close ability. It will also fire the stateChange event.
+
+Note that if an ad employs multiple resize() calls or a resize() followed by an expand(), close() changes the creative back to its default, banner state. It does NOT simply undo the most recently called resize() or expand().
+
+close()
+<pre>
+parameters:
+· none
+return values:
+· none
+event triggered:
+· stateChange
+</pre>
+
+**useCustomClose** method
+
+Although MRAID requires all implementing containers to provide a clickable area with a default “close” indicator graphic, it is possible for ad creators to use their own designs for the close indicator.
+
+This method serves as a convenience method to the expand property of the same name. Setting the property or calling this method both have the same effect and can be used interchangeably. If an ad sets useCustomClose via both expand properties AND this method, whichever is invoked later will override the earlier setting. They signal the container to stop using the default close indicator.
+
+For expanded ads, the designer does not need to call this method and would normally set the useCustomClose property in setExpandProperties().
+
+For a stand-alone interstitial where there is no call to expand(), but there is still a requirement of an MRAID-enforced close control, the ad designer should call this method immediately after the Ready event.
+
+Ad designers should be clear that an MRAID-compliant SDK is required to show the default close indicator until the useCustomClose method is called and/or the property is set.
+
+useCustomClose(boolean)
+<pre>
+parameters:
+· true – ad creative supplies its own design for the close indicator
+· false – container default image should be displayed for the close indicator
+return values:
+· none
+events triggered:
+· none
+</pre>
+
+##	_Resize: Enables Sophisticated Ad Size Changes_
+
+Ad creative that needs to engage in a succession of size changes, or to change size non-modally to less-than-fullscreen size, has the ability to do so by calling resize. As with expand, the resize method operates at a higher z-index than the app content, and so is positioned above the underlying content, and so does not push or reposition the app content.
+
+**resize** method
+
+The resize method will cause the existing web view to change size using the existing HTML document. Like expand(), resize() size changes happen at highest level in the view hierarchy, and so do not automatically shift or otherwise reposition underlying content. App publishers that want to support content-shifting ads like “push-downs” can do so using resize but must implement the repositioning of app content in response to the resize independently.
+
+The resize method will move the state from "default" to "resized" and fire the stateChange event. Resize can be called multiple times by the creative. Additional calls to resize will also trigger the stateChanged event although the state value will remain “resized.” Calls to resize from an “expanded” state will trigger an error event and not change the state.
+
+_Note: resize should not be used for ad creative that expands to full-screen (or larger) size: for such creative executions expand() should always be used. Resize will always result in a non-modal size change, and some portion of the app should always remain visible to the end user._
+
+Use this method to request a resize of the default ad view to a desired size and screen position. Note that resize() relies on parameters that are stored in the resizeProperties JavaScript object. Thus the creative must set those parameters via the setResizeProperties() method BEFORE attempting to resize(). Calling resize() before setResizeProperties will result in an error.
+
+The container will notify the app of the resize request so that the app can react to the change as appropriate. For example, a publisher integration may listen for resize() calls to implement behavior like a “push-down” ad. If the resize is valid, then the sizeChange event is fired. If the parameters are out of range, then the error event identifies the exception.
+
+resize()
+<pre>
+parameters:
+· none
+return values:
+· none
+events triggered:
+· sizeChange, stateChange
+side effects:
+· changes state
+</pre>
+
+**Close Control for Resized Ads**
+
+As with expandable ads, resized ads must have a way for the person viewing the ad to return the ad to its default state. MRAID differentiates two aspects to a “close” feature:
+
+* Close event region: The close event region is a tappable area on the ad creative that will cause the ad to close/collapse back to its default state. The close event region is required and supplied by the container in a creative-specified location for all MRAID resizable ads.
+* Close Indicator: The close indicator is the visual cue to the user as to the location of the close event region. For resized ads, the container does NOT supply a close indicator superimposed on the close event region. Instead, FOR RESIZED ADS, THE CREATIVE MUST ALWAYS SUPPLY ITS OWN CLOSE INDICATOR GRAPHIC.
+
+MRAID-compliant SDKs must therefore always supply containers with a 50x50 close event region located on the ad creative, tapping on which will return the ad to its default state. While this close event region must be present, the ad designer can specify where on the ad the control should be located. If the ad designer opts not to specify a location for the close event region then by default the container will position it at the top right corner of the resized ad container.
+
+A resized ad must position itself such that the entire close event region appears onscreen. If the container/SDK detects that a request to resize will result in the close event region being offscreen, the container/SDK should return an error, and ignore the resize (e.g., leave the ad in its current state). This requirement also means that a resized ad must be at least 50x50 pixels, to ensure there is room on the resized creative for the close event region.
+
+Unlike the case of expand(), for resize() the container will not supply a close indicator.Rather, it is expected that the ad designer will include a close indicator in the creative.
+
+While the tappable close control is mandatory, ad designers are free to include other ways to close a resized ad, by using MRAID’s close() method.
+
+**resizeProperties** object
+
+```
+resizeProperties object = { “width” : integer, “height” : integer,
+“offsetX” : integer, “offsetY” : integer, “customClosePosition” : string, “allowOffscreen” : boolean
+}
+```
+
+Notes:
+
+* width : (required) integer – width of creative in pixels
+* height : (required) integer – height of creative in pixels
+* offsetX: (required) is the horizontal delta from the banner's upper left-hand corner where the upper left-hand corner of the expanded region should be placed; positive integers for expand right; negative for left
+* offsetY: (required) is the vertical delta from the banner's upper left-hand corner where the upper left-hand corner of the expanded region should be placed; positive integers for expand down; negative for up
+* customClosePosition: (optional) string – either "top-left", "top-right", "center", "bottom-left", "bottom-right," “top-center,” or “bottom-center” indicates the origin of the container-supplied close event region relative to the resized creative. If not specified or not one of these options, will **default to top-right**.
+* allowOffscreen: (optional) tells the container whether or not it should allow the resized creative to be drawn fully/partially offscreen
+    * **True (default)**: the container should not attempt to position the resized creative
+    * False: the container should try to reposition the resized creative to always fit in the getMaxSize() area
+
+When allowOffscreen is set to False, the SDK will do its best to move the default (banner) ad container to ensure that the resized creative fits on the screen. For example, if ad is on the top of the screen, and ad wants to resize upwards by 50 pixels, then the SDK will move the default (banner) ad 50 pixels down and then execute the resize. If allowOffscreen is set to true in this case, the resized portion of the ad will extend off the top of the screen. 
+
+allowOffscreen cannot solve all positioning issues. For example, if an ad successfully resizes in landscape orientation, but then becomes larger than the size of the screen due to an orientation change to portrait, the setting of allowOffscreen to false will have no effect, as there is no way the container/SDK can successfully reposition a landscape creative to fit on a portrait screen.
+
+Note that width, height, offsetX and offsetY are required and have no default properties. If the ad creative attempts to call resize() before setting these four properties, the container will leave the ad in its current state and return an error.
+
+**getResizeProperties** method
+
+The getResizeProperties method returns the whole JavaScript object resizeProperties object.
+
+Use this method to get the properties for resizing an ad.
+
+getResizeProperties() -> JavaScript Object
+<pre>
+parameters:
+· none
+return values:
+· { ... } - this object contains the resize properties
+events triggered:
+· none
+</pre>
+
+**setResizeProperties** method
+
+Use this method to set the ad's resize properties, in particular the width and height of the resized ad creative.
+<pre>
+parameters:
+· properties: JavaScript Object { ... } - this object contains the width and height of the resized ad, close position, offset direction (all in density-independent pixels), and whether the ad can resize offscreen. For more info see properties object.
+return values:
+· none
+events triggered:
+· none
+</pre>
+
+Resize ads should be QA tested carefully. Ads that set parameters that are impossible for the container to follow will result in an error event being triggered and the resize will not take place. For example, an error will occur if an ad sets allowOffscreen to “false” but sets the width and height of the resize to be too big to actually fit on the screen.
+
+##	_Checking Position and Size of the Screen and Ad_
+
+MRAID v2.0 includes several methods enabling an ad to check where and how large it is, and the maximum size it can expand to. Ad designers can use these capabilities to give their ads increased flexibility to behave differently on different devices and/or differently sized screens.
+
+**getCurrentPosition** method
+
+
+
+
 
 
 

@@ -812,7 +812,7 @@ An expanded view must provide an end-user with the ability to close the expanded
 
 Placement of the expanded ad on screen, especially when the expanded view can be placed in multiple locations, is left to the ad designer. For full-screen expands, all MRAID compliant SDKs will grant the full device screen space and will position the ad so it is fully visible.
 
-When the ad size is greater or smaller than the screen size of the device, the SDK will size the web view to be identical to the maximum size allowed by t device and app. The creative will not be scaled down or up to the size of the device’s screen; rather it will be up to the ad creative to position itself appropriately within the expanded web view via CSS.
+When the ad size is greater or smaller than the screen size of the device, the SDK will size the web view to be identical to the maximum size allowed by the device and app. The creative will not be scaled down or up to the size of the device’s screen; rather it will be up to the ad creative to position itself appropriately within the expanded web view via CSS.
 
 ![expand](./images/c.jpg)
 
@@ -836,7 +836,8 @@ The expand properties object is intended to provide additional features to ad de
 Expand properties can only be set BEFORE the ad calls expand(). Changes after the ad is in its expanded state will be ignored.
 
 ```
-expandProperties object = { “width” : integer,
+expandProperties object = { 
+“width” : integer,
 “height” : integer,
 “useCustomClose” : boolean,
 “isModal” : boolean (read only)

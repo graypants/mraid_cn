@@ -995,6 +995,12 @@ useCustomClose(boolean)
 · none
 </pre>
 
+##	Resize：可完成复杂的广告尺寸变化
+
+广告创意需要进行连续的尺寸变化，或非模态的改变尺寸到小于全屏尺寸，通过调用resize方法能够实现。正如expand那样，resize方法工作在一个z-index值比App内容更高的层级，因而被放置在App内容之上，也不用占用或重新定位App内容。
+
+**resize** 方法
+
 
 
 

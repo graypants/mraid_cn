@@ -1041,8 +1041,13 @@ While the tappable close control is mandatory, ad designers are free to include 
 **resizeProperties** object
 
 ```
-resizeProperties object = { “width” : integer, “height” : integer,
-“offsetX” : integer, “offsetY” : integer, “customClosePosition” : string, “allowOffscreen” : boolean
+resizeProperties object = { 
+“width” : integer, 
+“height” : integer,
+“offsetX” : integer, 
+“offsetY” : integer, 
+“customClosePosition” : string, 
+“allowOffscreen” : boolean
 }
 ```
 

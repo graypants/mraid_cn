@@ -1111,7 +1111,11 @@ getCurrentPosition() -> JavaScript Object
 parameters:
 · none
 return value:
-· JavaScript Object - {x, y, width, height}: x=number of density-independent pixels offset from left edge of the rectangle defining getMaxSize(); y=number of density-independent pixels offset from top of the rectangle defining getMaxSize(); width=current width of container; height=current height of container (both measured in density-independent pixels)
+· JavaScript Object - {x, y, width, height}: 
+x=number of density-independent pixels offset from left edge of the rectangle defining getMaxSize(); 
+y=number of density-independent pixels offset from top of the rectangle defining getMaxSize(); 
+width=current width of container; 
+height=current height of container (both measured in density-independent pixels)
 related events:
 · none
 </pre>
@@ -1156,7 +1160,11 @@ getDefaultPosition() -> JavaScript Object
 parameters:
 · none
 return values:
-· JavaScript Object - {x, y, width, height}: x=number of density-independent pixels offset from left of getMaxSize(); y=number of density-independent pixels offset from top of getMaxSize(); width=current width of container; height=current height of container
+· JavaScript Object - {x, y, width, height}: 
+x=number of density-independent pixels offset from left of getMaxSize(); 
+y=number of density-independent pixels offset from top of getMaxSize(); 
+width=current width of container; 
+height=current height of container
 </pre>
 
 **getScreenSize** method
@@ -1223,7 +1231,9 @@ supports(feature) -> Boolean
 parameters:
 · String, name of feature
 return values:
-· Boolean – true, the feature is supported and getter and events are available; false, the feature is not supported on this device
+· Boolean – 
+true, the feature is supported and getter and events are available; 
+false, the feature is not supported on this device
 </pre>
 
 ##	_Working with the Device's Physical Characteristics_

@@ -1104,7 +1104,267 @@ MRAID v2.0 includes several methods enabling an ad to check where and how large 
 
 **getCurrentPosition** method
 
+The getCurrentPosition method will return the current position and size of the ad view, measured in density-independent pixels.
 
+getCurrentPosition() -> JavaScript Object
+<pre>
+parameters:
+· none
+return value:
+· JavaScript Object - {x, y, width, height}: x=number of density-independent pixels offset from left edge of the rectangle defining getMaxSize(); y=number of density-independent pixels offset from top of the rectangle defining getMaxSize(); width=current width of container; height=current height of container (both measured in density-independent pixels)
+related events:
+· none
+</pre>
+
+**getMaxSize** method
+
+The getMaxSize method returns the maximum size (in density-independent pixel width and height) an ad can expand or resize to. If the app runs full-screen on the device (e.g., covers the status bar), the max size will be the full screen dimensions. If the app runs at less than full screen on the device, due to screen area reserved for a status bar or other elements outside the app, then the max size will return the size of the view that contains the app (which defines the maximum space the ad may resize within).
+
+getMaxSize() -> JavaScript Object
+<pre>
+parameters:
+· none
+return value:
+· JavaScript Object, {width, height} - the maximum width and height the view can grow to
+related events:
+· none
+</pre>
+
+**sizeChange** event
+
+The sizeChange event fires when the ad’s size within the app UI changes. This can be the result of an orientation change of the device or calls to the resize or expand methods. Measurements are in density-independent pixels.
+
+This event is triggered when the display state of the ad’s web view changes.
+
+sizeChange -> function(width, height)
+<pre>
+parameters:
+· width - Number: the width of the view
+· height - Number: the height of the view
+triggered by:
+· a change in the view size as the result of a resize, expand, close, orientation, or the app after registering a "size" event listener.
+</pre>
+
+**getDefaultPosition** method
+
+The getDefaultPosition method returns the position and size of the default ad view, measured in density-independent pixels, regardless of what state the calling view is in.
+
+Use this method to get the location and size of the default ad view.
+
+getDefaultPosition() -> JavaScript Object
+<pre>
+parameters:
+· none
+return values:
+· JavaScript Object - {x, y, width, height}: x=number of density-independent pixels offset from left of getMaxSize(); y=number of density-independent pixels offset from top of getMaxSize(); width=current width of container; height=current height of container
+</pre>
+
+**getScreenSize** method
+
+The getScreenSize method returns the current actual pixel width and height, based on the current orientation, in density-independent pixels, of the device on which the ad is running. Note that the ScreenSize will change if the device is turned from portrait to landscape mode (and vice versa). Note also that getScreenSize will return the TOTAL size of the device screen, including area (if any) reserved by the OS for status/system bars or other functions, which cannot be overridden by the app or the ad. Designers seeking to enable creative to check how much usable screen real estate is available should use getMaxSize rather than getScreenSize.
+
+getScreenSize() -> JavaScript Object
+<pre>
+parameters:
+· none
+return values:
+· {width, height}
+related event:
+</pre>
+
+##	_Offline Requests and Metrics_
+
+Rich Media Ads that can work while the device is without network connectivity need the ability to store and later forward metrics about how and when users interact with the ad.
+
+MRAID has the potential to provide common APIs to facilitate storing and forwarding of ad impression delivery, view, and other metrics from the app back to the ad server. However, until measurement methodologies and the metrics themselves are standardized (for example by the ongoing IAB/MMA/MRC In-App Ad Measurement Guidelines project), adding measurement functionality to MRAID would be premature.
+
+The MRAID working group expects that this capability will be evaluated and potentially added to MRAID as part of a future release.
+
+##	_Access to Native Features_
+
+MRAID encourages the use of standard web technologies in ad design as much as possible for presentation needs, basic functions, and even an increasing list of the advanced ad functionalities required for truly rich media advertising. MRAID’s role around access to native features is to help rich media ads discover what capabilities a device will support, and to fill in any gaps in capability not widely available, or not fully stabilized and consistent, within HTML5/Webkit.
+
+**supports** method
+
+The supports method allows the ad to interrogate the device for support of specific features.
+
+An MRAID compliant SDK must be able to deliver all of these functionalities on any device that is capable of them. However, individual publisher implementations of the SDK may result in deactivating features/capabilities that conflict with publisher policies.
+
+<table border="1" cellpadding="3">
+	<tr>
+		<th>value</th>
+		<th>description</th>
+	</tr>
+	<tr>
+		<td>sms</td>
+		<td>the device supports using the sms: protocol to send an SMS message</td>
+	</tr>
+	<tr>
+		<td>tel</td>
+		<td>the device supports initiating calls using the tel: protocol</td>
+	</tr>
+	<tr>
+		<td>calendar</td>
+		<td>the device can create a calendar entry</td>
+	</tr>
+	<tr>
+		<td>storePicture</td>
+		<td>the device supports the MRAID storePicture method</td>
+	</tr>
+	<tr>
+		<td>inlineVideo</td>
+		<td>The device can playback HTML5 video files using the <video> tag and honors the size (width and height) specified in the video tag. This does not require the video to be played in full screen.</td>
+	</tr>
+</table>
+
+supports(feature) -> Boolean
+
+<pre>
+parameters:
+· String, name of feature
+return values:
+· Boolean – true, the feature is supported and getter and events are available; false, the feature is not supported on this device
+</pre>
+
+##	_Working with the Device's Physical Characteristics_
+
+Most devices have several different kinds of sensors that can report on various physical characteristics of the device, such as its location, the direction it is pointing, its orientation, and its motion. Access to most of these capabilities is standardized in HTML5 at present (or will be in the near future), and where an open standard provides access to a device feature or capability, MRAID defers to the open standard.
+
+**Device Orientation**
+
+Ad creative should be able to request the orientation of a device/web container via HTML5 with consistent results across devices and MRAID implementations. For Android implementations and iOS versions after 5.0 this happens automatically; however, earlier iOS implementations require a code tweak on the part of the SDK vendor in order to window orientation changes fire events properly.
+
+To be compliant with MRAID 2.0, an SDK needs to deploy a code modification of this sort for pre-iOS 5.0 Apple devices. While SDK vendors can use whatever technical solution they prefer to achieve this, the following sample code offers an example of a means to address this issue.
+
+```
+(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation) fromInterfaceOrientation {
+
+if (UIInterfaceOrientationIsPortrait(newOrientation) ||
+	UIInterfaceOrientationIsLandscape(newOrientation)) {
+	NSInteger degrees = 0;
+	switch (self.interfaceOrientation) {
+		case UIInterfaceOrientationPortrait:
+			degrees = 0;
+			break;
+		case UIInterfaceOrientationLandscapeLeft:
+			degrees = 90;
+			break;
+		case UIInterfaceOrientationLandscapeRight:
+			degrees = -90;
+			break;
+		case UIInterfaceOrientationPortraitUpsideDown:
+			degrees = 180;
+			break;
+		default:
+			// Don't care about this orientation.
+			return;
+	}
+	// Update the window.orientation property then trigger
+	// onorientationchange().
+	NSString *javascript = [NSString stringWithFormat:
+	// Create the 'window.orientation' read-only property.
+	@"window.__defineGetter__('orientation',function(){return %i;});"
+	// Dispatch the 'orientationchange' event. This also calls
+	// 'window.onorientationchange()'.
+	@"(function(){"
+	@"var event = document.createEvent('Events');"
+	@"event.initEvent('orientationchange', true, false);"
+	@"window.dispatchEvent(event);"
+	@"})();",
+	degrees];
+	[self.webView stringByEvaluatingJavaScriptFromString:javascript];
+}
+
+}
+```
+
+Ad designers cannot rely on window.orientation to determine whether a device is in portrait or landscape mode. The value of window.orientation is intended to indicate the screen's position in relation to the “standard” orientation axis, i.e., the axis on which the values of a DeviceOrientationEvent are reported. However, that standard orientation may not be portrait (height greater than width) mode. Indeed, on widescreen Android tablets, such as the Samsung Galaxy Tab 10.1., window.orientation is set to zero when the device is in landscape (width greater than height) mode.
+
+Ad designers should instead use the mraid.getScreenSize() method to retrieve the current width and height of the device screen.
+
+##	_Storing a Picture_
+
+Rich Media Ad designers may want to add a picture to the camera roll or photo album of the device they are running on. This can be handy for a number of features, including storing coupons for later redemption.
+
+**storePicture** method
+
+The storePicture method will place a picture in the device's photo album. The picture may be local or retrieved from the Internet. To ensure that the user is aware a picture is being added to the photo album, MRAID requires the SDK/container use an OS-level handler to display a modal dialog box asking that the user confirm or cancel the addition to the photo album for each image added. If the device does not have a native “add photo” confirmation handler, the SDK should treat the device as though it does not support storePicture.
+
+This method will store the image or other media type specified by the URI.
+
+MRAID-compliant containers will support adding a picture via an HTTP redirect (for tracking purposes); however they will not necessarily support meta redirects.
+
+If the attempt to add the picture fails for any reason or is cancelled by the user, it will trigger an error.
+
+storePicture(URI)
+<pre>
+parameter:
+· URI -String: the URI to the image or other media asset
+related event:
+· none
+</pre>
+
+##	_Creating Calendar Events_
+
+The createCalendarEvent method opens the device UI to create a new calendar event. The ad is suspended while the UI is open. To ensure the creation of a calendar event is always user initiated and authorized, MRAID-compliant containers must invoke the device’s native “create calendar event” sheet, pre-populated with data supplied by the ad. Where a device does not support such a “create calendar event” sheet, the SDK should treat that device as if it does not support adding calendar events.
+
+Calendar event data should be delivered in the form of a JavaScript object written to the W3C’s calendar specification. See Appendix.
+
+If the attempt to create the calendar event fails or is cancelled by the user, it will trigger an error.
+
+createCalendarEvent(parameters)
+<pre>
+parameters:
+· parameters: JavaScript Object {…} – this object contains the parameters for the calendar entry, written according to the W3C specification for calendar entries. See Appendix.
+return value:
+· none
+related event:
+· none
+</pre>
+
+For example, the following would add a calendar event for the Mayan Apocalypse/End of the World on December 21, 2012, taking place “everywhere” and starting at midnight Eastern time and ending at midnight Eastern time on December 22, 2012.
+
+```
+createCalendarEvent({
+description: “Mayan Apocalypse/End of World”, 
+location: ‘everywhere’, 
+start: ‘2012-12-21T00:00-05:00, 
+end: ‘2012-12-22T00:00-05:00’
+})
+```
+
+##	_Working with Video_
+
+Video on mobile devices can be played either inline (within the current web view, app, or mobile web page) or by opening a native player on the device. For many advertising applications, inline playback will be preferred: it is less disruptive to the viewer’s experience, and playback within a web view enables HTML5 reporting on metrics related to how much of the creative was viewed. These metrics are generally harder to access, or unavailable, when video is viewed in the native player.
+
+Ad designers must keep in mind that device/OS limitations may prevent inline video playback (this is notably the case with devices running Android version 2.x and earlier).
+
+However, MRAID-compliant containers should support inline playback where possible, and permit ad designers to specify if video creative should play inline or in a separate player. Ad designers can use the “supports(inlineVideo)” method to determine whether the device running the creative will display video inline.
+
+In order to enable inline video playback and autoplay of video, MRAID-compliant SDKs should consistently insert the any necessary enabling tags into the web view depending on operating system of the device.
+
+For iOS devices, the following tags must be used:
+
+* webView.mediaPlaybackRequiresUserAction = NO;
+* webView.allowsInlineMediaPlayback = YES;
+
+For Android (Honeycomb, Ice Cream Sandwich and above) devices, the SDK must invoke hardware acceleration, which is dependent on the view in question and how it is added to the WindowManager:
+
+* getWindow().setFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED, WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
+
+For Android 2.x and earlier devices, it is not possible to play video inline; the native player is always invoked by the playVideo method.
+
+**playVideo** method
+
+Use this method to play a video on the device via the device’s native, external player. Note that this is purely a convenience method for the OS’s existing external player, and does not imply a separate, SDK-based video player. To play video inline (on devices where that feature is supported), use HTML5 video tags.
+
+playVideo(URI)
+<pre>
+parameters:
+· URI - String, the URI of the video or video stream
+return values:
+· none
+</pre>
 
 
 

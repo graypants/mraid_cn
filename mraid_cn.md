@@ -1055,8 +1055,8 @@ resizeProperties object = {
 
 * width: integer —— （必须）创意的像素宽
 * height: integer —— （必须）创意的像素高
-* offsetX: —— （必须）
-* offsetY: —— （必须）
+* offsetX: —— （必须）TODO
+* offsetY: —— （必须）TODO
 * customClosePosition: string —— （可选）"top-right"、"center"、"bottom-left"、"bottom-right"、“top-center”或者“bottom-center”。表示相对于缩放的创意，容器提供的关闭事件区的原点位置。如果没有指定或者不是这些选项之一，默认取"top-right"。
 * allowOffscreen: —— （可选）告诉容器是否应该允许缩放创意绘制完整/部分的超出屏幕。
     * **True (default)**: 容器不应试图定位缩放创意。
@@ -1098,8 +1098,149 @@ getResizeProperties() -> JavaScript Object
 
 QA需要仔细的测试缩放型广告。像下面这样，广告给容器设置一个不可能的参数，会触发error事件并且resize不会执行。比如说，如果某个广告设置allowOffscreen为false，但是设置了比实际适合屏幕尺寸要大的宽和高，那么就会发生错误。
 
+##	检测屏幕和广告的位置及大小
 
+MRAID2.0引入了几个能使广告监测它自身展开到哪儿和展开到多大的方法，还有它可以展开的最大尺寸。广告设计者可以使用这些特性来增强广告的灵活性，以便在不同设备或不同屏幕尺寸的设备上有不同的行为。
 
+**getCurrentPosition** 方法
+
+getCurrentPosition方法返回广告视图当前的位置和尺寸，以DIP为单位。
+
+getCurrentPosition() -> JavaScript Object
+<pre>
+参数：
+· none
+返回值：
+· JavaScript Object - {x, y, width, height}：
+x=从getMaxSize方法定义的矩形左边开始的偏移量（DIP为单位）
+y=从getMaxSize方法定义的矩形顶部开始的偏移量（DIP为单位）
+width=当前容器的宽。
+height=当前容器的高。（都是以DIP为单位）
+关联事件：
+· none
+</pre>
+
+**getMaxSize** 方法
+
+getMaxSize方法返回广告可以展开到或缩放到的最大尺寸（宽和高都以DIP为单位）。如果App在设备上全屏运行（即：覆盖状态栏），最大尺寸即是全屏的大小。如果App以小于全屏尺寸在设备上运行，因为屏幕要为状态栏或其他App外部元素保留区域，所以getMaxSize将返回包含App视图（它定义了广告所能调整大小的最大空间）的尺寸。
+
+getMaxSize() -> JavaScript Object
+<pre>
+参数：
+· none
+返回值：
+· JavaScript Object, {width, height} —— 视图可以增长到的最大宽和高
+关联事件：
+· none
+</pre>
+
+**sizeChange** 事件
+
+当广告的尺寸在App界面内发生改变时会触发sizeChange事件。它可能是设备方向改变或调用resize或调用expand方法产生的结果。都是以DIP为单位。
+
+当广告的web view的显示状态发生改变时，触发此事件。
+
+sizeChange -> function(width, height)
+<pre>
+参数：
+· width - Number: 视图的宽。
+· height - Number: 视图的高。
+经由触发：
+· 缩放、展开、关闭、方向改变或者在App注册尺寸相关事件监听器后导致广告视图尺寸发生改变时触发。
+</pre>
+
+**getDefaultPosition** 方法
+
+不管视图处于何种状态时调用，getDefaultPosition方法都将返回默认广告视图的位置和尺寸（DIP为单位）。
+
+使用此方法获取默认广告视图的位置和尺寸。
+
+getDefaultPosition() -> JavaScript Object
+<pre>
+参数：
+· none
+返回值：
+· JavaScript Object - {x, y, width, height}：
+x=从getMaxSize左边开始的偏移量（DIP为单位）；
+y=从getMaxSize顶部开始的偏移量（DIP为单位）；
+width=当前容器的宽；
+height=当前容器的高；
+</pre>
+
+**getScreenSize** 方法
+
+getScreenSize方法基于当前方向，以DIP为单位，返回正在运行广告设备的实际像素宽和高。有一点需要注意的是：如果设备从横屏转为竖屏，ScreenSize将发生改变（反之亦然）。另外一点需要注意的是：getScreenSize返回设备屏幕的总计尺寸，包含操作系统给状态栏/系统栏的预留区域，或那些可以被App或广告覆盖的其它区域。设计师寻找能够检查创意还有多少屏幕可用区域时，getMaxSize比getScreenSize更好。
+
+getScreenSize() -> JavaScript Object
+<pre>
+参数：
+· none
+返回值：
+· {width, height}
+关联事件：
+</pre>
+
+##	离线请求和指标
+
+当设备没有网络连接时，富媒体广告也可以工作，要完成这项任务需要有本地存储和延迟转发功能，衡量用户会在什么时候和广告交互以及如何交互。
+
+MRAID有潜力提供通用的API以促进存储和广告效果转发，以及其它一些从App返回到广告服务器的指标。然而，除非测量方法和指标本身是标准化的（比如正在进行的IAB/MMA/MRCAPP内广告度量指南），在这之前向MRAID中添加测量功能都为时过早。
+
+MRAID工作组希望这些特性能被评估，并且有可能添加到MRAID中，成为以后MRAID发布版的一部分。
+
+##	访问本地功能
+
+在广告设计中，对于图像需求，基础功能，甚至日益递增的被真正富媒体广告所需要的高级广告功能清单， MRAID都鼓励尽可能的使用标准Web技术。围绕着本地特性，MRAID扮演的角色是帮助富媒体广告发现设备有什么本地功能可以支持，并且填补那些没有普及可用的功能，或者HTML5/Webkit中没有完全稳定和统一的特性。
+
+**supports** 方法
+
+supports方法允许广告询问设备支持的指定功能。
+
+一个MRAID兼容的SDK，在任何设备中都必须能够提供以下功能列表中哪一项是可用的。然而，个别出版商实现的SDK可能会导致和出版商政策相冲突的停用功能/特性。
+
+<table border="1" cellpadding="3">
+	<tr>
+		<th>值</th>
+		<th>描述</th>
+	</tr>
+	<tr>
+		<td>sms</td>
+		<td>设备支持使用短消息功能：按照协议发送一个短消息</td>
+	</tr>
+	<tr>
+		<td>tel</td>
+		<td>设备支持使用电话功能拨打电话：按协议</td>
+	</tr>
+	<tr>
+		<td>calendar</td>
+		<td>设备可以创建一个日历项</td>
+	</tr>
+	<tr>
+		<td>storePicture</td>
+		<td>设备支持MRAID storePicture方法</td>
+	</tr>
+	<tr>
+		<td>inlineVideo</td>
+		<td>设备可以使用&lt;video&gt;标签播放HTML5视屏文件，并且按着video标签中指定的尺寸（宽和高）播放。这里并不需要以全屏方式播放视频。</td>
+	</tr>
+</table>
+
+supports(feature) -> Boolean
+
+<pre>
+参数：
+· String  要检测特性的名称（sms, tel, calendar, storePicture, inlineVideo）
+return values:
+· Boolean 
+true —— 支持该功能，并且getter和事件都是可用的。
+false —— 当前设备不支持本功能。
+</pre>
+
+##	用设备的物理特性工作
+
+大多数设备都有几种不同类型的传感器可以报告该设备的各种物理特性，例如它的位置，指向，取向，和运动轨迹。当前，在HTML5中，访问这些特性中的大部分功能已成为标准（或者在不远的将来），在这种情况下，开放的标准提供访问设备的功能或特性，MRAID标准推迟到开放标准之后。
+
+**设备取向**
 
 
 

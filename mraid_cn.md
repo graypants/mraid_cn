@@ -1240,7 +1240,111 @@ false —— 当前设备不支持本功能。
 
 大多数设备都有几种不同类型的传感器可以报告该设备的各种物理特性，例如它的位置，指向，取向，和运动轨迹。当前，在HTML5中，访问这些特性中的大部分功能已成为标准（或者在不远的将来），在这种情况下，开放的标准提供访问设备的功能或特性，MRAID标准推迟到开放标准之后。
 
-**设备取向**
+**设备方向**
+
+广告创意应能通过HTML5请求设备或容器的方向，和MRAID实现一致的跨设备。对于Android和iOS5.0之后的版本，它们原本就支持，然而，为了在合适的时机触发窗口方向改变，早期的iOS实现需要SDK供应商提供部分代码调整。
+
+为了兼容MRAID2.0，SDK需要为iOS5.0以前的苹果设备部署这类代码修改。虽然SDK供应商可以使用他们钟情的任何技术方案来达到此目的，下面的示例代码提供了解决这个问题的一种方法。
+
+```
+(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation) fromInterfaceOrientation {
+
+if (UIInterfaceOrientationIsPortrait(newOrientation) ||
+	UIInterfaceOrientationIsLandscape(newOrientation)) {
+	NSInteger degrees = 0;
+	switch (self.interfaceOrientation) {
+		case UIInterfaceOrientationPortrait:
+			degrees = 0;
+			break;
+		case UIInterfaceOrientationLandscapeLeft:
+			degrees = 90;
+			break;
+		case UIInterfaceOrientationLandscapeRight:
+			degrees = -90;
+			break;
+		case UIInterfaceOrientationPortraitUpsideDown:
+			degrees = 180;
+			break;
+		default:
+			// Don't care about this orientation.
+			return;
+	}
+	// Update the window.orientation property then trigger
+	// onorientationchange().
+	NSString *javascript = [NSString stringWithFormat:
+	// Create the 'window.orientation' read-only property.
+	@"window.__defineGetter__('orientation',function(){return %i;});"
+	// Dispatch the 'orientationchange' event. This also calls
+	// 'window.onorientationchange()'.
+	@"(function(){"
+	@"var event = document.createEvent('Events');"
+	@"event.initEvent('orientationchange', true, false);"
+	@"window.dispatchEvent(event);"
+	@"})();",
+	degrees];
+	[self.webView stringByEvaluatingJavaScriptFromString:javascript];
+}
+
+}
+```
+
+广告设计者不能依靠window.orientation来确定设备是否处于横屏还是竖屏模式。window.orientation的值意在表示相对于标准方向轴的屏幕位置，即：基于DeviceOrientationEvent报告的值。但是，标准的方向不一定就是横屏模式（高比宽大）。的确，在Android宽屏平板电脑上，比如三星Galaxy Tab 10.1，当设备处于竖屏模式（宽比高大）时，window.orientation的值为零.
+
+广告设计者应替代使用mraid.getScreenSize()方法来取得设备当前屏幕的宽和高。
+
+##	存储图片
+
+富媒体广告设计者可能会想添加一张图片到他们正在运行设备的相册。对于某些功能，这很实用，比如存储用于未来兑换用的优惠券。
+
+**storePicture** 方法
+
+调用storePicture方法会在设备相册中放任一张图片。图片可能是本地或者从网络下载的。为了确保用户注意到图片将添加到他们的设备相册，在每张图片的添加过程中，MRAID要求SDK/容器使用操作系统层级的处理器显示模型对话框询问用户确认或取消添加图片。如果设备没有本地添加图片确认处理器，SDK应把设备看做为不支持storePicture。
+
+此方法用于存储图片或通过URI指定的其它媒体类型。
+
+MRAID兼容的容器支持通过HTTP重定向（为了跟踪统计）添加图片；然而他们倒是没必要支持meta重定向。
+
+如果因为任何原因引起的添加图片失败或用户取消添加，将引发错误。
+
+storePicture(URI)
+<pre>
+参数：
+· URI - String：图片或其他媒体资源的URI
+关联事件：
+· none
+</pre>
+
+##	创建日历事件
+
+createCalendarEvent方法打开设备的界面用于创建一个新的日历事件。当界面展开时，广告暂停。为了确保创建日历事件始终是用户发起和授权的，MRAID兼容的容器必须调用设备的本机“创建日历事件”接口，预先填充由广告提供的数据。当设备不支持这种“创建日历事件”接口时，SDK应视为设备不支持添加日历事件。
+
+应按照W3C日历规范编写JS对象作为数据提供给日历事件。参考附录部分。
+
+如果尝试创建日历事件失败或用户取消创建，将引发错误。
+
+createCalendarEvent(parameters)
+<pre>
+参数：
+· parameters: JavaScript Object {…} —— 对象包含日历事件所需的条目，根据W3C规范指定的日历条目编写。参考附录。
+返回值：
+· none
+关联事件：
+· none
+</pre>
+
+比如，以下在2012.12.21号为玛雅预言世界末日添加一个日历事件，选择位置为“任意地点”，起始日期为东部时间凌晨，结束日期为东部时间2012.12.22凌晨。
+
+```
+createCalendarEvent({
+description: “Mayan Apocalypse/End of World”, 
+location: ‘everywhere’, 
+start: ‘2012-12-21T00:00-05:00, 
+end: ‘2012-12-22T00:00-05:00’
+})
+```
+
+##	处理视频
+
 
 
 

@@ -1345,7 +1345,36 @@ end: ‘2012-12-22T00:00-05:00’
 
 ##	处理视频
 
+移动设备上的视频播放要么通过行内播放（在当前web view里，App中或移动网页），要么通过打开本地播放器播放。对于大部分App的广告来说，首选行内播放：它较少的破坏观者体验，同时，使用web view播放可以通过HTML5报告有关创意被观看了多少次的指标。当视频在本地播放器中观看时，这些指标通常都难以获取或不可用。
 
+广告设计者必须牢记：设备/操作系统限制可能会阻止行内视频播放（尤其在设备运行Android2.x版本和早期版本的情况下）。
+
+然而，在有可能的情况下，MRAID兼容的容器最好支持行内播放，同时允许广告设计者指定视频创意是以行内播放还是单独播放。广告设计者可以使用“supports(inlineVideo)”方法确定运行创意的设备是否显示行内视频。
+
+为了使内嵌式视频能够播放并且自动播放，MRAID兼容的SDK应向web view中插入必要的开启标签，这依赖于设备的操作系统类型。
+
+对于iOS设备，必须使用下列标签：
+
+* webView.mediaPlaybackRequiresUserAction = NO;
+* webView.allowsInlineMediaPlayback = YES;
+
+对于Android设备（Honeycomb，Ice Cream Sandwich，还有它们之后的版本），SDK必须请求硬件加速，这些依赖于问题中的视图和它是如何被添加到WindowManager中的：
+
+* getWindow().setFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED, WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
+
+对于Android2.x和早期设备，是不可能播放行内视频的；playVideo方法始终只调用本地播放器。
+
+**playVideo** 方法
+
+使用此方法通过设备的本机外部播放器在设备上播放视频。需要注意的是，对于操作系统已有的外部播放器，这纯粹是一种便利的方法，并不意味着一个独立的、基于SDK的视频播放器。要播放行内（对于支持该功能的设备）视频，使用HTML5标签。
+
+playVideo(URI)
+<pre>
+参数：
+· URI - String, 视频地址或视频流
+返回值：
+· none
+</pre>
 
 
 

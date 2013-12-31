@@ -63,7 +63,7 @@ IAB移动营销中心高级总监：Joe Laszlo，mobile@iab.net
 
 **关闭指引：**给用户一个视觉提醒，指示他们关闭事件区所在的位置。
 
-**控制器**控制器是一段提供给广告设计者访问MRAID方法和事件的JavaScript代码。广告创意使用控制器执行和广告容器之间的交互，也可以间接的和App及设备交互。
+**控制器：**控制器是一段提供给广告设计者访问MRAID方法和事件的JavaScript代码。广告创意使用控制器执行和广告容器之间的交互，也可以间接的和App及设备交互。
 
 **设备独立像素（DIP）：**通过MRAID API在控制器和创意之间传递的所有长度值都是设备独立像素。
 
@@ -214,7 +214,7 @@ MRAID2.0继承了MRAID1.0的特性，在展开式广告之上，给广告设计�
 	close 								open
 	expand 								playVideo*
 	getCurrentPosition*					removeEventListener
-	getDefaultPosition*					resize
+	getDefaultPosition*					resize*
 	getExpandProperties					setExpandProperties
 	getMaxSize*							setResizeProperties*
 	getPlacementType					storePicture*

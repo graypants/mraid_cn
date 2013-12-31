@@ -220,7 +220,8 @@ MRAID2.0继承了MRAID1.0的特性，在展开式广告之上，给广告设计�
 	getPlacementType					storePicture*
 	getResizeProperties*				supports*
 	getScreenSize*						useCustomClose
-	getState
+	getState							getOrientationProperties*
+	setOrientationProperties*
 </pre>
 
 **事件**

@@ -220,7 +220,8 @@ This list outlines all the methods and events that ad designers will have access
 	getPlacementType					storePicture*
 	getResizeProperties*				supports*
 	getScreenSize*						useCustomClose
-	getState
+	getState							getOrientationProperties*
+	setOrientationProperties*
 </pre>
 
 **Events**

@@ -214,7 +214,7 @@ This list outlines all the methods and events that ad designers will have access
 	close 								open
 	expand 								playVideo*
 	getCurrentPosition*					removeEventListener
-	getDefaultPosition*					resize
+	getDefaultPosition*					resize*
 	getExpandProperties					setExpandProperties
 	getMaxSize*							setResizeProperties*
 	getPlacementType					storePicture*

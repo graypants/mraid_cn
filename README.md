@@ -2,7 +2,7 @@
 
 MRAID的全称是Mobile Rich Media Ad Interface Definitions，中文译为移动富媒体广告接口规范，目前最新版本为2.0。
 
-原文是[PDF版](http://www.iab.net/mraid)，为了方便阅读，我将其手动转换为Markdown格式并翻译，希望对广告行业的小伙伴有所帮助。
+原文是[PDF版](http://www.iab.net/mraid)，为了方便阅读，我将其手动转换为Markdown格式并翻译，希望对从事广告行业的技术小伙伴有所帮助。
 
 ##MRAID广告测试
 
